@@ -148,29 +148,13 @@ export default function Home() {
       sessionStorage.removeItem('walletManuallyDisconnected');
       console.log('Attempting to connect wallet...');
       
-      // First check if we're already allowed/connected
-      const isAlreadyAllowed = await isAllowed();
-      const isAlreadyConnected = await isConnected();
-      console.log('Connection status:', { isAlreadyAllowed, isAlreadyConnected });
-      
-      if (isAlreadyAllowed && isAlreadyConnected) {
-        const pubKey = await getPublicKey();
-        console.log('Already connected, public key:', pubKey);
-        setWalletPublicKey(pubKey);
-        setStellarAddress(pubKey);
-        setWalletConnected(true);
-        setCurrentStep(1);
-        return;
-      }
-      
-      // Request permission to access the wallet - this will throw if Freighter isn't installed
+      // Always request permissions again - this will trigger the Freighter popup
       console.log('Requesting wallet permissions...');
-      const allowed = await setAllowed();
-      console.log('Permission granted:', allowed);
+      // requestAccess() always prompts the user and returns the public key
+      const pubKey = await requestAccess();
+      console.log('Permission granted, public key:', pubKey);
       
-      if (allowed) {
-        // After permission is granted, get the public key
-        const pubKey = await getPublicKey();
+      if (pubKey) {
         console.log('Successfully connected, public key:', pubKey);
         setWalletPublicKey(pubKey);
         setStellarAddress(pubKey);
