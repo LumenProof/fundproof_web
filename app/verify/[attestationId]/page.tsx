@@ -72,232 +72,140 @@ export default function VerifyPage() {
   };
 
   return (
-    <div className="verify-container">
-      <div className="verify-card">
-        <Link href="/" className="back-link">
-          <ArrowLeft size={20} />
-          Back to Create Proof
-        </Link>
-        
-        <h1>Proof Verification</h1>
-        
-        {loading && (
-          <div className="loading-state">
-            <Loader2 size={48} className="spinner" />
-            <p>Verifying your zero-knowledge proof...</p>
-          </div>
-        )}
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white overflow-x-hidden">
+      {/* Animated Background - matching the app's design language */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
 
-        {error && (
-          <div className="error-state">
-            <XCircle size={48} className="error-icon" />
-            <p>{error}</p>
+      {/* Header - matching the app's header style */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-2xl border-b border-slate-800/50 shadow-2xl shadow-black/20">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <Link href="/" className="flex items-center gap-3 group cursor-pointer">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                <div className="relative bg-gradient-to-br from-blue-500 to-cyan-400 p-2.5 rounded-xl">
+                  <ShieldCheck className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">FundProof</span>
+            </Link>
+            
+            <Link 
+              href="/"
+              className="group relative inline-flex items-center gap-2 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-300"
+            >
+              <ArrowLeft size={18} />
+              Back to App
+            </Link>
           </div>
-        )}
+        </div>
+      </header>
 
-        {verification && !loading && (
-          <div className={`verification-result ${verification.verified ? 'verified' : 'failed'}`}>
-            {verification.verified ? (
-              <>
-                <div className="success-header">
-                  <ShieldCheck size={64} className="success-icon" />
-                  <h2>Proof Verified Successfully!</h2>
-                </div>
-                
-                <div className="verification-details">
-                  <div className="detail-row">
-                    <span className="label">Attestation ID:</span>
-                    <span className="value">{attestationId}</span>
-                    <button 
-                      onClick={() => copyToClipboard(attestationId as string)}
-                      className="copy-btn"
-                    >
-                      {copied ? <Check size={16} /> : <Copy size={16} />}
-                    </button>
+      {/* Main Content */}
+      <main className="relative pt-32 pb-20 px-6">
+        <div className="max-w-2xl mx-auto">
+          {/* Page Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent mb-4">
+              Proof Verification
+            </h1>
+          </div>
+
+          {/* Verification Card */}
+          <div className="bg-slate-900/70 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl overflow-hidden">
+            {loading && (
+              <div className="p-12 text-center">
+                <Loader2 size={48} className="animate-spin mx-auto mb-6 text-blue-400" />
+                <p className="text-slate-400">Verifying your zero-knowledge proof...</p>
+              </div>
+            )}
+
+            {error && (
+              <div className="p-12 text-center">
+                <XCircle size={48} className="mx-auto mb-6 text-red-400" />
+                <p className="text-red-400">{error}</p>
+              </div>
+            )}
+
+            {verification && !loading && (
+              <div className="p-8">
+                {verification.verified ? (
+                  <>
+                    {/* Success Header */}
+                    <div className="text-center mb-8">
+                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-500/20 mb-6">
+                        <ShieldCheck size={48} className="text-green-400" />
+                      </div>
+                      <h2 className="text-3xl font-bold text-green-400 mb-2">Proof Verified Successfully!</h2>
+                    </div>
+                    
+                    {/* Verification Details */}
+                    <div className="bg-slate-800/50 rounded-xl p-6 mb-6">
+                      <div className="space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-slate-700 last:border-0">
+                          <span className="font-semibold text-slate-300 sm:min-w-[220px] mb-1 sm:mb-0">Attestation ID:</span>
+                          <div className="flex items-center gap-2 flex-1">
+                            <span className="text-white font-mono text-sm break-all flex-1">{attestationId}</span>
+                            <button 
+                              onClick={() => copyToClipboard(attestationId as string)}
+                              className="p-2 rounded-lg hover:bg-slate-700 transition-colors flex-shrink-0"
+                              title="Copy to clipboard"
+                            >
+                              {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} className="text-slate-400" />}
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-slate-700 last:border-0">
+                          <span className="font-semibold text-slate-300 sm:min-w-[220px] mb-1 sm:mb-0">Stellar Address:</span>
+                          <span className="text-white font-mono text-sm break-all">{verification.attestation?.stellarAddress}</span>
+                        </div>
+                        
+                        <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-slate-700 last:border-0">
+                          <span className="font-semibold text-slate-300 sm:min-w-[220px] mb-1 sm:mb-0">Minimum Balance Threshold:</span>
+                          <span className="text-2xl font-bold text-blue-400">{formatCurrency(verification.attestation?.thresholdCents || 0)}</span>
+                        </div>
+                        
+                        <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-slate-700 last:border-0">
+                          <span className="font-semibold text-slate-300 sm:min-w-[220px] mb-1 sm:mb-0">Created At:</span>
+                          <span className="text-slate-300">{formatDate(verification.attestation?.createdAt || 0)}</span>
+                        </div>
+                        
+                        <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-slate-700 last:border-0">
+                          <span className="font-semibold text-slate-300 sm:min-w-[220px] mb-1 sm:mb-0">Verified At:</span>
+                          <span className="text-slate-300">{formatDate(verification.attestation?.verifiedAt || 0)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Verification Note */}
+                    <div className="p-5 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                      <p className="text-slate-300">
+                        This zero-knowledge proof confirms that the Stellar address owns at least the minimum 
+                        balance threshold, without revealing any additional financial details.
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-500/20 mb-6">
+                      <XCircle size={48} className="text-red-400" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-red-400 mb-4">Proof Verification Failed</h2>
+                    <p className="text-slate-400">This proof is either invalid, expired, or has been tampered with.</p>
                   </div>
-                  
-                  <div className="detail-row">
-                    <span className="label">Stellar Address:</span>
-                    <span className="value address">
-                      {verification.attestation?.stellarAddress}
-                    </span>
-                  </div>
-                  
-                  <div className="detail-row">
-                    <span className="label">Minimum Balance Threshold:</span>
-                    <span className="value threshold">
-                      {formatCurrency(verification.attestation?.thresholdCents || 0)}
-                    </span>
-                  </div>
-                  
-                  <div className="detail-row">
-                    <span className="label">Created At:</span>
-                    <span className="value">
-                      {formatDate(verification.attestation?.createdAt || 0)}
-                    </span>
-                  </div>
-                  
-                  <div className="detail-row">
-                    <span className="label">Verified At:</span>
-                    <span className="value">
-                      {formatDate(verification.attestation?.verifiedAt || 0)}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="verification-note">
-                  <p>
-                    This zero-knowledge proof confirms that the Stellar address owns at least the minimum 
-                    balance threshold, without revealing any additional financial details.
-                  </p>
-                </div>
-              </>
-            ) : (
-              <div className="failed-state">
-                <XCircle size={64} className="failed-icon" />
-                <h2>Proof Verification Failed</h2>
-                <p>This proof is either invalid, expired, or has been tampered with.</p>
+                )}
               </div>
             )}
           </div>
-        )}
-      </div>
-      
-      <style jsx>{`
-        .verify-container {
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .verify-card {
-          background: white;
-          border-radius: 16px;
-          padding: 40px;
-          max-width: 600px;
-          width: 100%;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-          position: relative;
-        }
-        
-        .back-link {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          color: #667eea;
-          text-decoration: none;
-          font-weight: 500;
-          margin-bottom: 20px;
-          transition: opacity 0.2s;
-        }
-        
-        .back-link:hover {
-          opacity: 0.8;
-        }
-        
-        h1 {
-          text-align: center;
-          color: #1a1a2e;
-          margin-bottom: 30px;
-          font-size: 2rem;
-        }
-        
-        .loading-state {
-          text-align: center;
-          padding: 40px;
-        }
-        
-        .spinner {
-          animation: spin 1s linear infinite;
-          margin: 0 auto 20px;
-          color: #667eea;
-        }
-        
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        
-        .error-state {
-          text-align: center;
-          padding: 40px;
-          color: #e74c3c;
-        }
-        
-        .error-icon {
-          margin: 0 auto 20px;
-        }
-        
-        .verification-result {
-          width: 100%;
-        }
-        
-        .verification-result.verified .success-header {
-          text-align: center;
-          margin-bottom: 30px;
-        }
-        
-        .success-icon {
-          color: #27ae60;
-          margin: 0 auto 20px;
-        }
-        
-        .success-header h2 {
-          color: #27ae60;
-          font-size: 1.8rem;
-          margin: 0;
-        }
-        
-        .verification-details {
-          background: #f8f9fa;
-          border-radius: 12px;
-          padding: 20px;
-          margin-bottom: 20px;
-        }
-        
-        .detail-row {
-          display: flex;
-          align-items: center;
-          padding: 12px 0;
-          border-bottom: 1px solid #e9ecef;
-        }
-        
-        .detail-row:last-child {
-          border-bottom: none;
-        }
-        
-        .label {
-          font-weight: 600;
-          color: #495057;
-          min-width: 200px;
-        }
-        
-        .value {
-          flex: 1;
-          color: #1a1a2e;
-          word-break: break-all;
-        }
-        
-        .value.address {
-          font-family: 'Courier New', monospace;
-          font-size: 0.9rem;
-        }
-        
-        .value.threshold {
-          font-weight: 700;
-          color: #667eea;
-          font-size: 1.1rem;
-        }
-        
-        .copy-btn {
-          background: none;
-          border: none;
-          cursor: pointer;
-          color: #667eea;
-          padding: 4px;
+        </div>
+      </main>
+    </div>
+  );
           transition: color 0.2s;
         }
         

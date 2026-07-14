@@ -328,310 +328,437 @@ export default function Home() {
   };
 
   return (
-    <main>
-      <section className="shell">
-        <div className="headline">
-          <div className="brand">
-            <ShieldCheck aria-hidden />
-            <span>FundProof</span>
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white overflow-x-hidden">
+      {/* Animated Background - matching landing page */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
+
+      {/* Header - matching landing page styling */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-2xl border-b border-slate-800/50 shadow-2xl shadow-black/20">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center gap-3 group cursor-pointer" onClick={() => setShowApp(false)}>
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                <div className="relative bg-gradient-to-br from-blue-500 to-cyan-400 p-2.5 rounded-xl">
+                  <ShieldCheck className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">FundProof</span>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setShowHistory(!showHistory)}
+                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 text-sm font-medium"
+              >
+                <History size={16} />
+                History
+              </button>
+              <button
+                onClick={toggleTheme}
+                className="p-2.5 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300"
+                aria-label="Toggle theme"
+              >
+                {isDarkMode ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-slate-300" />}
+              </button>
+              <button 
+                onClick={() => setShowApp(false)}
+                className="group relative inline-flex items-center gap-2 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-300"
+              >
+                Back to Home
+              </button>
+            </div>
           </div>
-          <div className="header-actions">
-            <button 
-              className="theme-toggle" 
-              onClick={toggleTheme}
-              aria-label="Toggle theme"
-            >
-              {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
-            <button 
-              className="secondary-button small" 
-              onClick={() => setShowHistory(!showHistory)}
-            >
-              <History size={16} />
-              History
-            </button>
-          </div>
-          <h1>Private proof-of-funds for Stellar USDC</h1>
-          <p>
-            Prove a wallet meets a funding threshold without revealing the exact balance. The local demo uses a backend-signed attestation and Circom/Groth16 circuit input ready for Stellar verification.
-          </p>
         </div>
+      </header>
 
-        <div className="workspace">
-          <div className="progress-steps">
-            {STEPS.map((step, index) => (
-              <div key={step.id} className={`step ${getStepStatus(index)}`}>
-                <div className="step-indicator">
-                  {index < currentStep ? <CheckCircle2 size={18} /> : <span>{index + 1}</span>}
-                </div>
-                <div className="step-content">
-                  <h3>{step.title}</h3>
-                  <p>{step.description}</p>
-                </div>
-                {index < STEPS.length - 1 && <ChevronRight className="step-arrow" size={16} />}
-              </div>
-            ))}
+      <main className="relative pt-32 pb-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          {/* Hero Section */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent mb-4">
+              Private proof-of-funds for Stellar USDC
+            </h1>
+            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+              Prove a wallet meets a funding threshold without revealing the exact balance. The local demo uses a backend-signed attestation and Circom/Groth16 circuit input ready for Stellar verification.
+            </p>
           </div>
 
-          {showHistory && (
-            <div className="panel history-panel">
-              <div className="panel-title">
-                <History aria-hidden />
-                <h2>Proof History</h2>
-              </div>
-              {proofHistory.length === 0 ? (
-                <p className="empty">No proofs generated yet. Your proof history will appear here.</p>
-              ) : (
-                <div className="history-list">
-                  {proofHistory.map((item) => (
-                    <div key={item.id} className="history-item">
-                      <div className="history-status">
-                        {item.verified ? <CheckCircle2 className="status-icon pass" /> : <XCircle className="status-icon fail" />}
+          {/* Progress Steps */}
+          <div className="mb-10">
+            <div className="flex items-center justify-between overflow-x-auto pb-4 gap-4">
+              {STEPS.map((step, index) => {
+                const status = getStepStatus(index);
+                return (
+                  <div key={step.id} className="flex items-center flex-shrink-0">
+                    <div className="flex items-center gap-3">
+                      <div className={`relative flex items-center justify-center w-10 h-10 rounded-xl border-2 transition-all duration-300 ${
+                        status === 'complete' 
+                          ? 'bg-green-500/20 border-green-500 text-green-400' 
+                          : status === 'current' 
+                            ? 'bg-blue-500/20 border-blue-500 text-blue-400 shadow-lg shadow-blue-500/20' 
+                            : 'bg-slate-800/50 border-slate-700 text-slate-500'
+                      }`}>
+                        {status === 'complete' ? <CheckCircle2 size={20} /> : <span className="font-semibold">{index + 1}</span>}
                       </div>
-                      <div className="history-details">
-                        <p className="address">{item.stellarAddress.slice(0, 12)}...{item.stellarAddress.slice(-8)}</p>
-                        <p className="threshold">{formatUsd(item.thresholdCents)}</p>
-                        <p className="date">{new Date(item.createdAt).toLocaleDateString()}</p>
+                      <div className="hidden sm:block">
+                        <h3 className={`font-semibold text-sm ${status === 'current' ? 'text-white' : 'text-slate-400'}`}>{step.title}</h3>
+                        <p className="text-xs text-slate-500">{step.description}</p>
                       </div>
-                      {item.proofUrl && (
-                        <button 
-                          className="icon-button"
-                          onClick={() => copyToClipboard(item.proofUrl!)}
-                          title="Copy link"
-                        >
-                          <Copy size={14} />
-                        </button>
-                      )}
                     </div>
-                  ))}
+                    {index < STEPS.length - 1 && (
+                      <ChevronRight className={`ml-4 flex-shrink-0 ${index < currentStep ? 'text-green-500' : 'text-slate-700'}`} size={20} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* History Panel */}
+          {showHistory && (
+            <div className="mb-8 bg-slate-900/70 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl overflow-hidden">
+              <div className="p-6 border-b border-slate-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-blue-500/20">
+                    <History className="text-blue-400" size={20} />
+                  </div>
+                  <h2 className="text-xl font-bold">Proof History</h2>
                 </div>
-              )}
+              </div>
+              <div className="p-6">
+                {proofHistory.length === 0 ? (
+                  <p className="text-slate-500 text-center py-8">No proofs generated yet. Your proof history will appear here.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {proofHistory.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl hover:bg-slate-800/70 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className={item.verified ? 'text-green-400' : 'text-red-400'}>
+                            {item.verified ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
+                          </div>
+                          <div>
+                            <p className="font-mono text-sm text-slate-300">{item.stellarAddress.slice(0, 12)}...{item.stellarAddress.slice(-8)}</p>
+                            <p className="text-sm text-slate-500">Threshold: {formatUsd(item.thresholdCents)} • {new Date(item.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                        {item.proofUrl && (
+                          <button 
+                            className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 transition-colors"
+                            onClick={() => copyToClipboard(item.proofUrl!)}
+                            title="Copy link"
+                          >
+                            <Copy size={16} className="text-slate-400" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
+          {/* Connect Wallet Panel */}
           {!walletConnected ? (
-            <div className="panel connect-panel">
-              <div className="panel-title">
-                <Wallet aria-hidden />
-                <h2>Connect Your Wallet</h2>
-              </div>
-              <div className="connect-content">
-                <div className="info-box">
-                  <Info size={20} />
-                  <p>To use FundProof, you need to connect your Freighter wallet. Freighter is the official wallet for the Stellar network.</p>
+            <div className="bg-slate-900/70 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl overflow-hidden">
+              <div className="p-6 border-b border-slate-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-blue-500/20">
+                    <Wallet className="text-blue-400" size={20} />
+                  </div>
+                  <h2 className="text-xl font-bold">Connect Your Wallet</h2>
                 </div>
-                <button onClick={connectWallet} className="primary-button">
+              </div>
+              <div className="p-6">
+                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl mb-6">
+                  <div className="flex gap-3">
+                    <Info size={20} className="text-blue-400 flex-shrink-0 mt-0.5" />
+                    <p className="text-slate-300">To use FundProof, you need to connect your Freighter wallet. Freighter is the official wallet for the Stellar network.</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={connectWallet} 
+                  className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white font-semibold py-3.5 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105"
+                >
                   <Wallet aria-hidden />
                   Connect Freighter Wallet
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                {error && <p className="error">{error}</p>}
-                <div className="install-note">
-                  <p>Don't have Freighter installed?</p>
+                {error && <p className="mt-4 text-red-400 text-sm bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</p>}
+                <div className="mt-6 pt-6 border-t border-slate-800">
+                  <p className="text-slate-500 mb-2">Don't have Freighter installed?</p>
                   <a 
                     href="https://www.freighter.app/" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="link"
+                    className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
                   >
-                    Install Freighter <ExternalLink size={12} />
+                    Install Freighter <ExternalLink size={14} />
                   </a>
                 </div>
               </div>
             </div>
           ) : (
-            <form onSubmit={submit} className="panel">
-              <div className="panel-title">
-                <WalletCards aria-hidden />
-                <h2>Create Your Claim</h2>
+            /* Create Claim Form */
+            <form onSubmit={submit} className="bg-slate-900/70 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl overflow-hidden">
+              <div className="p-6 border-b border-slate-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-cyan-500/20">
+                    <WalletCards className="text-cyan-400" size={20} />
+                  </div>
+                  <h2 className="text-xl font-bold">Create Your Claim</h2>
+                </div>
               </div>
-
-              <div className="wallet-info">
-                <div className="connected-wallet">
-                  <CheckCircle2 className="connected-icon" />
-                  <span>Connected: {walletPublicKey.slice(0, 12)}...{walletPublicKey.slice(-8)}</span>
+              <div className="p-6 space-y-6">
+                {/* Connected Wallet Info */}
+                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center justify-between flex-wrap gap-4">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="text-green-400" size={20} />
+                    <span className="font-mono text-sm text-slate-300">Connected: {walletPublicKey.slice(0, 12)}...{walletPublicKey.slice(-8)}</span>
+                  </div>
                   <button 
                     type="button" 
                     onClick={disconnectWallet}
-                    className="disconnect-btn"
+                    className="px-4 py-2 text-sm text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors"
                   >
                     Disconnect
                   </button>
                 </div>
+
+                {/* Stellar Address Input */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Stellar address (read-only)</label>
+                  <input 
+                    value={stellarAddress} 
+                    readOnly
+                    disabled
+                    placeholder="Connect your wallet to populate this field"
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-slate-400 font-mono text-sm focus:outline-none focus:border-slate-600 disabled:opacity-60"
+                  />
+                  <p className="mt-2 text-xs text-slate-500">This is automatically populated from your connected Freighter wallet and cannot be edited.</p>
+                </div>
+
+                {/* Threshold Input */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Minimum USDC threshold</label>
+                  <input 
+                    value={threshold} 
+                    onChange={(event) => setThreshold(event.target.value)} 
+                    inputMode="decimal"
+                    placeholder="1000.00"
+                    className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  />
+                  <p className="mt-2 text-xs text-slate-500">This is the minimum balance you want to prove you hold. Your exact balance remains private.</p>
+                </div>
+
+                {/* Submit Button */}
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white font-semibold py-3.5 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="animate-spin" size={20} />
+                      Preparing your attestation...
+                    </>
+                  ) : (
+                    <>
+                      <FileKey2 aria-hidden />
+                      Generate attestation
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+
+                {error && <p className="text-red-400 text-sm bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</p>}
               </div>
-
-              <label>
-                Stellar address (read-only)
-                <input 
-                  value={stellarAddress} 
-                  readOnly
-                  disabled
-                  placeholder="Connect your wallet to populate this field"
-                  className="readonly-input"
-                />
-                <small>This is automatically populated from your connected Freighter wallet and cannot be edited.</small>
-              </label>
-
-              <label>
-                Minimum USDC threshold
-                <input 
-                  value={threshold} 
-                  onChange={(event) => setThreshold(event.target.value)} 
-                  inputMode="decimal"
-                  placeholder="1000.00"
-                />
-                <small>This is the minimum balance you want to prove you hold. Your exact balance remains private.</small>
-              </label>
-
-              <button type="submit" disabled={loading}>
-                {loading ? <Loader2 className="spinner" /> : <FileKey2 aria-hidden />}
-                {loading ? 'Preparing your attestation...' : 'Generate attestation'}
-              </button>
-
-              {error ? <p className="error">{error}</p> : null}
             </form>
           )}
 
-          <section className="panel result-panel">
-            <div className="panel-title">
-              {attestation && passes ? <CheckCircle2 aria-hidden /> : attestation ? <XCircle aria-hidden /> : <ShieldCheck aria-hidden />}
-              <h2>Verification Package</h2>
+          {/* Verification Package Panel */}
+          <section className="mt-8 bg-slate-900/70 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-slate-800/50">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${attestation && passes ? 'bg-green-500/20' : attestation ? 'bg-red-500/20' : 'bg-blue-500/20'}`}>
+                  {attestation && passes ? <CheckCircle2 className="text-green-400" size={20} /> : attestation ? <XCircle className="text-red-400" size={20} /> : <ShieldCheck className="text-blue-400" size={20} />}
+                </div>
+                <h2 className="text-xl font-bold">Verification Package</h2>
+              </div>
             </div>
 
-            {!attestation ? (
-              <div className="empty-state">
-                <ShieldCheck size={48} className="empty-icon" />
-                <p className="empty">Connect your wallet and generate an attestation to prepare private circuit inputs and public signals.</p>
-              </div>
-            ) : (
-              <div className="result">
-                <div className={passes ? 'status pass' : 'status fail'}>
-                  {passes ? '✓ Local balance satisfies threshold' : '✗ Local balance is below threshold'}
+            <div className="p-6">
+              {!attestation ? (
+                <div className="text-center py-12">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-800/50 mb-6">
+                    <ShieldCheck size={32} className="text-slate-500" />
+                  </div>
+                  <p className="text-slate-500">Connect your wallet and generate an attestation to prepare private circuit inputs and public signals.</p>
                 </div>
+              ) : (
+                <div className="space-y-8">
+                  {/* Status Banner */}
+                  <div className={`p-4 rounded-xl flex items-center gap-3 ${passes ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
+                    {passes ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
+                    <span className="font-semibold">{passes ? '✓ Local balance satisfies threshold' : '✗ Local balance is below threshold'}</span>
+                  </div>
 
-                <div className="stats-grid">
-                  <div className="stat-card">
-                    <dt>Mock balance</dt>
-                    <dd>{formatUsd(attestation.demo.mockBalanceCents)}</dd>
-                  </div>
-                  <div className="stat-card">
-                    <dt>Threshold</dt>
-                    <dd>{formatUsd(attestation.thresholdCents)}</dd>
-                  </div>
-                  <div className="stat-card">
-                    <dt>Expires</dt>
-                    <dd>{new Date(attestation.expiresAt * 1000).toLocaleDateString()}</dd>
-                  </div>
-                </div>
-
-                <div className="details-section">
-                  <h3>Technical Details</h3>
-                  <dl>
-                    <div>
-                      <dt>Attestation hash</dt>
-                      <dd className="hash">{attestation.attestationHash}</dd>
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="p-5 bg-slate-800/50 rounded-xl">
+                      <dt className="text-sm text-slate-500 mb-1">Mock balance</dt>
+                      <dd className="text-2xl font-bold text-white">{formatUsd(attestation.demo.mockBalanceCents)}</dd>
                     </div>
-                    <div>
-                      <dt>Address hash</dt>
-                      <dd className="hash">{attestation.addressHash}</dd>
+                    <div className="p-5 bg-slate-800/50 rounded-xl">
+                      <dt className="text-sm text-slate-500 mb-1">Threshold</dt>
+                      <dd className="text-2xl font-bold text-white">{formatUsd(attestation.thresholdCents)}</dd>
                     </div>
-                  </dl>
-                </div>
+                    <div className="p-5 bg-slate-800/50 rounded-xl">
+                      <dt className="text-sm text-slate-500 mb-1">Expires</dt>
+                      <dd className="text-2xl font-bold text-white">{new Date(attestation.expiresAt * 1000).toLocaleDateString()}</dd>
+                    </div>
+                  </div>
 
-                {proofInput && !generatedProof && (
-                  <div className="action-section">
-                    <button 
-                      type="button" 
-                      className="secondary-button primary" 
-                      onClick={generateProof} 
-                      disabled={proofLoading || !passes}
-                    >
-                      {proofLoading ? <Loader2 className="spinner" /> : <PlayCircle aria-hidden />}
-                      {proofLoading ? 'Generating your ZK proof...' : 'Generate Zero-Knowledge Proof'}
-                    </button>
-                    
-                    <div className="code-block">
-                      <div className="code-header">
-                        <span>Public Signals</span>
-                        <button 
-                          className="copy-btn" 
-                          onClick={() => copyToClipboard(JSON.stringify(proofInput.publicSignals, null, 2))}
-                        >
-                          {copied ? <Check size={14} /> : <Copy size={14} />}
-                        </button>
+                  {/* Technical Details */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Technical Details</h3>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-slate-800/50 rounded-xl">
+                        <dt className="text-sm text-slate-500 mb-2">Attestation hash</dt>
+                        <dd className="font-mono text-sm text-slate-300 break-all">{attestation.attestationHash}</dd>
                       </div>
-                      <pre>{JSON.stringify(proofInput.publicSignals, null, 2)}</pre>
-                    </div>
-                  </div>
-                )}
-
-                {generatedProof && (
-                  <div className="proof-complete">
-                    <div className="status pass large">
-                      <CheckCircle2 size={24} />
-                      Groth16 proof verified locally
-                    </div>
-                    
-                    <div className="proof-stats">
-                      <div className="stat-card">
-                        <dt>Public signals</dt>
-                        <dd>{generatedProof.publicSignals.length}</dd>
-                      </div>
-                      <div className="stat-card">
-                        <dt>Proof file</dt>
-                        <dd>{generatedProof.files.proof}</dd>
+                      <div className="p-4 bg-slate-800/50 rounded-xl">
+                        <dt className="text-sm text-slate-500 mb-2">Address hash</dt>
+                        <dd className="font-mono text-sm text-slate-300 break-all">{attestation.addressHash}</dd>
                       </div>
                     </div>
+                  </div>
 
-                    <div className="share-section">
-                      <h3>Share Your Proof</h3>
-                      <div className="share-actions">
-                        <button 
-                          className="secondary-button"
-                          onClick={() => setShowQR(!showQR)}
-                        >
-                          <QrCode size={16} />
-                          {showQR ? 'Hide QR Code' : 'Show QR Code'}
-                        </button>
-                        <button 
-                          className="secondary-button"
-                          onClick={() => copyToClipboard(`${window.location.origin}/verify/${generatedProof.attestationId}`)}
-                        >
-                          <Copy size={16} />
-                          {copied ? 'Copied!' : 'Copy Proof Link'}
-                        </button>
+                  {proofInput && !generatedProof && (
+                    <div className="space-y-6">
+                      <button 
+                        type="button" 
+                        onClick={generateProof} 
+                        disabled={proofLoading || !passes}
+                        className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white font-semibold py-3.5 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                      >
+                        {proofLoading ? (
+                          <>
+                            <Loader2 className="animate-spin" size={20} />
+                            Generating your ZK proof...
+                          </>
+                        ) : (
+                          <>
+                            <PlayCircle aria-hidden />
+                            Generate Zero-Knowledge Proof
+                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                          </>
+                        )}
+                      </button>
+                      
+                      {/* Public Signals Code Block */}
+                      <div className="rounded-xl overflow-hidden border border-slate-700">
+                        <div className="flex items-center justify-between px-4 py-3 bg-slate-800 border-b border-slate-700">
+                          <span className="text-sm font-medium text-slate-300">Public Signals</span>
+                          <button 
+                            className="p-1.5 rounded-lg hover:bg-slate-700 transition-colors"
+                            onClick={() => copyToClipboard(JSON.stringify(proofInput.publicSignals, null, 2))}
+                            title="Copy to clipboard"
+                          >
+                            {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} className="text-slate-400" />}
+                          </button>
+                        </div>
+                        <div className="p-4 bg-slate-900/50 overflow-x-auto">
+                          <pre className="text-sm text-slate-300">{JSON.stringify(proofInput.publicSignals, null, 2)}</pre>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {generatedProof && (
+                    <div className="space-y-8">
+                      {/* Proof Complete Status */}
+                      <div className="p-5 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center gap-4">
+                        <CheckCircle2 size={28} className="text-green-400 flex-shrink-0" />
+                        <div>
+                          <span className="font-semibold text-green-400 text-lg">Groth16 proof verified locally</span>
+                          <p className="text-sm text-green-400/70">Your zero-knowledge proof has been successfully generated and verified</p>
+                        </div>
                       </div>
                       
-                      {showQR && (
-                        <div className="qr-container">
-                          <QRCodeSVG 
-                            value={`${window.location.origin}/verify/${generatedProof.attestationId}`}
-                            size={200}
-                          />
-                          <p>Scan to verify this proof</p>
+                      {/* Proof Stats */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="p-5 bg-slate-800/50 rounded-xl">
+                          <dt className="text-sm text-slate-500 mb-1">Public signals</dt>
+                          <dd className="text-2xl font-bold text-white">{generatedProof.publicSignals.length}</dd>
                         </div>
-                      )}
-                    </div>
-
-                    <div className="code-block">
-                      <div className="code-header">
-                        <span>Full Proof Data</span>
-                        <button 
-                          className="copy-btn"
-                          onClick={() => copyToClipboard(JSON.stringify(generatedProof, null, 2))}
-                        >
-                          {copied ? <Check size={14} /> : <Copy size={14} />}
-                        </button>
+                        <div className="p-5 bg-slate-800/50 rounded-xl">
+                          <dt className="text-sm text-slate-500 mb-1">Proof file</dt>
+                          <dd className="text-lg font-bold text-white font-mono">{generatedProof.files.proof}</dd>
+                        </div>
                       </div>
-                      <pre>{JSON.stringify(generatedProof, null, 2)}</pre>
+
+                      {/* Share Section */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4">Share Your Proof</h3>
+                        <div className="flex flex-wrap gap-3 mb-6">
+                          <button 
+                            onClick={() => setShowQR(!showQR)}
+                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 text-sm font-medium"
+                          >
+                            <QrCode size={16} />
+                            {showQR ? 'Hide QR Code' : 'Show QR Code'}
+                          </button>
+                          <button 
+                            onClick={() => copyToClipboard(`${window.location.origin}/verify/${generatedProof.attestationId}`)}
+                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 text-sm font-medium"
+                          >
+                            <Copy size={16} />
+                            {copied ? 'Copied!' : 'Copy Proof Link'}
+                          </button>
+                        </div>
+                        
+                        {showQR && (
+                          <div className="inline-block p-6 bg-white rounded-xl">
+                            <QRCodeSVG 
+                              value={`${window.location.origin}/verify/${generatedProof.attestationId}`}
+                              size={200}
+                            />
+                            <p className="mt-4 text-center text-slate-600 font-medium">Scan to verify this proof</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Full Proof Data Code Block */}
+                      <div className="rounded-xl overflow-hidden border border-slate-700">
+                        <div className="flex items-center justify-between px-4 py-3 bg-slate-800 border-b border-slate-700">
+                          <span className="text-sm font-medium text-slate-300">Full Proof Data</span>
+                          <button 
+                            className="p-1.5 rounded-lg hover:bg-slate-700 transition-colors"
+                            onClick={() => copyToClipboard(JSON.stringify(generatedProof, null, 2))}
+                            title="Copy to clipboard"
+                          >
+                            {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} className="text-slate-400" />}
+                          </button>
+                        </div>
+                        <div className="p-4 bg-slate-900/50 overflow-x-auto max-h-80">
+                          <pre className="text-sm text-slate-300">{JSON.stringify(generatedProof, null, 2)}</pre>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </div>
+              )}
+            </div>
           </section>
         </div>
-      </section>
-    </main>
+      </main>
+    </div>
   );
 }
 
