@@ -8,8 +8,7 @@ import {
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
-  isConnected, getPublicKey, connect, 
-  signTransaction, setAllowed, requestAccess
+  isConnected, getPublicKey, requestAccess
 } from '@stellar/freighter-api';
 
 type AttestationResponse = {
@@ -87,16 +86,19 @@ export default function Home() {
   useEffect(() => {
     const checkWalletConnection = async () => {
       try {
-        const connected = await isConnected();
-        if (connected) {
-          const pubKey = await getPublicKey();
-          setWalletPublicKey(pubKey);
-          setStellarAddress(pubKey);
-          setWalletConnected(true);
-          setCurrentStep(1);
+        // Check if Freighter is available
+        if (typeof window !== 'undefined' && window.freighter) {
+          const connected = await isConnected();
+          if (connected) {
+            const pubKey = await getPublicKey();
+            setWalletPublicKey(pubKey);
+            setStellarAddress(pubKey);
+            setWalletConnected(true);
+            setCurrentStep(1);
+          }
         }
       } catch (err) {
-        console.log('Freighter not available');
+        console.log('Freighter not available or not connected:', err);
       }
     };
     checkWalletConnection();
@@ -110,17 +112,29 @@ export default function Home() {
   const connectWallet = async () => {
     try {
       setError('');
-      const allowed = await setAllowed();
-      if (allowed) {
+      // First check if wallet is already connected
+      const alreadyConnected = await isConnected();
+      if (alreadyConnected) {
         const pubKey = await getPublicKey();
         setWalletPublicKey(pubKey);
         setStellarAddress(pubKey);
+        setWalletConnected(true);
+        setCurrentStep(1);
+        return;
+      }
+      
+      // Request access to the wallet
+      const access = await requestAccess();
+      if (access && access.publicKey) {
+        setWalletPublicKey(access.publicKey);
+        setStellarAddress(access.publicKey);
         setWalletConnected(true);
         setCurrentStep(1);
       } else {
         setError('Wallet connection rejected. Please allow access to continue.');
       }
     } catch (err) {
+      console.error('Wallet connection error:', err);
       setError('Failed to connect to Freighter wallet. Please ensure it is installed and unlocked.');
     }
   };
