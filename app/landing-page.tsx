@@ -126,52 +126,52 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="py-20 bg-gray-900">
+        <section id="features" className={`py-20 transition-colors duration-300 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-100">Key Features</h2>
-              <p className="text-lg text-gray-400 mt-4 max-w-3xl mx-auto">Discover the advantages of using FundProof for your financial attestations.</p>
+              <h2 className={`text-3xl md:text-4xl font-bold transition-colors duration-300 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>Key Features</h2>
+              <p className={`text-lg mt-4 max-w-3xl mx-auto transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Discover the advantages of using FundProof for your financial attestations.</p>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
-              <div className="bg-gray-800 p-6 rounded-lg text-center">
+              <div className={`p-6 rounded-lg text-center transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <ShieldCheck className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Complete Privacy</h3>
-                <p className="text-gray-400">
+                <h3 className={`text-xl font-semibold mb-2 transition-colors duration-300 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>Complete Privacy</h3>
+                <p className={`transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   Your account balance is never revealed. Only the proof that you meet a certain threshold is shared.
                 </p>
               </div>
-              <div className="bg-gray-800 p-6 rounded-lg text-center">
+              <div className={`p-6 rounded-lg text-center transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <FileKey2 className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Cryptographically Secure</h3>
-                <p className="text-gray-400">
+                <h3 className={`text-xl font-semibold mb-2 transition-colors duration-300 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>Cryptographically Secure</h3>
+                <p className={`transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   Generate a ZK-Proof that can be independently verified, ensuring the integrity of your attestation.
                 </p>
               </div>
-              <div className="bg-gray-800 p-6 rounded-lg text-center">
+              <div className={`p-6 rounded-lg text-center transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <PlayCircle className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">User-Friendly</h3>
-                <p className="text-gray-400">
+                <h3 className={`text-xl font-semibold mb-2 transition-colors duration-300 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>User-Friendly</h3>
+                <p className={`transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   A simple, step-by-step process to connect your wallet, set a threshold, and generate your proof.
                 </p>
               </div>
-              <div className="bg-gray-800 p-6 rounded-lg text-center">
+              <div className={`p-6 rounded-lg text-center transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <Bot className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Automated Process</h3>
-                <p className="text-gray-400">
+                <h3 className={`text-xl font-semibold mb-2 transition-colors duration-300 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>Automated Process</h3>
+                <p className={`transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   The entire process, from attestation to proof generation, is automated for a seamless experience.
                 </p>
               </div>
-              <div className="bg-gray-800 p-6 rounded-lg text-center">
+              <div className={`p-6 rounded-lg text-center transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <Star className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Stellar Integrated</h3>
-                <p className="text-gray-400">
+                <h3 className={`text-xl font-semibold mb-2 transition-colors duration-300 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>Stellar Integrated</h3>
+                <p className={`transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   Built on the Stellar network, ensuring fast, reliable, and low-cost transactions and attestations.
                 </p>
               </div>
-              <div className="bg-gray-800 p-6 rounded-lg text-center">
+              <div className={`p-6 rounded-lg text-center transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
                 <Zap className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Instant Verification</h3>
-                <p className="text-gray-400">
+                <h3 className={`text-xl font-semibold mb-2 transition-colors duration-300 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>Instant Verification</h3>
+                <p className={`transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   Anyone with the proof can instantly verify its authenticity without needing access to your account.
                 </p>
               </div>
@@ -180,10 +180,10 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
         </section>
 
         {/* Get Started Section */}
-        <section id="get-started" className="py-20 bg-gray-800">
+        <section id="get-started" className={`py-20 transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="w-full max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-100">Ready to Get Started?</h2>
-            <p className="text-lg text-gray-400 mt-4 mb-8">
+            <h2 className={`text-3xl md:text-4xl font-bold transition-colors duration-300 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>Ready to Get Started?</h2>
+            <p className={`text-lg mt-4 mb-8 transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Create your first private proof-of-funds in minutes. Connect your wallet and experience the future of financial privacy.
             </p>
             <button 
@@ -197,9 +197,9 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900">
-        <div className="w-full max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-gray-400">
-          <p>&copy; 2024 FundProof. All rights reserved.</p>
+      <footer className={`transition-colors duration-300 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+        <div className="w-full max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center">
+          <p className={`transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>&copy; 2024 FundProof. All rights reserved.</p>
         </div>
       </footer>
     </div>

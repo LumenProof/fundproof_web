@@ -11,7 +11,7 @@ declare global {
 import { 
   CheckCircle2, FileKey2, PlayCircle, ShieldCheck, WalletCards, XCircle, 
   Wallet, ArrowRight, History, QrCode, Copy, Check, ExternalLink, 
-  Loader2, ChevronRight, Info
+  Loader2, ChevronRight, Info, Sun, Moon
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
@@ -77,6 +77,7 @@ import LandingPage from './landing-page';
 
 export default function Home() {
   const [showApp, setShowApp] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [stellarAddress, setStellarAddress] = useState('');
   const [threshold, setThreshold] = useState('1000');
   const [attestation, setAttestation] = useState<AttestationResponse | null>(null);
@@ -92,6 +93,27 @@ export default function Home() {
   const [showHistory, setShowHistory] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
+
+  // Load saved theme preference
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      setIsDarkMode(false);
+      document.documentElement.classList.add('light-mode');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newIsDarkMode = !isDarkMode;
+    setIsDarkMode(newIsDarkMode);
+    if (newIsDarkMode) {
+      document.documentElement.classList.remove('light-mode');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.add('light-mode');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   const disconnectWallet = async () => {
     try {
@@ -313,7 +335,14 @@ export default function Home() {
             <ShieldCheck aria-hidden />
             <span>FundProof</span>
           </div>
-          <div className="header-actions">
+          <div className="header-actions" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <button 
+              className="theme-toggle" 
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+            >
+              {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
             <button 
               className="secondary-button small" 
               onClick={() => setShowHistory(!showHistory)}
