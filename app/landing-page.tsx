@@ -41,7 +41,12 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
               <ShieldCheck className={`h-8 w-8 text-blue-500`} />
               <span className={`text-2xl font-bold ml-3 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>FundProof</span>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-6">
+              <nav className="flex items-center space-x-6">
+                <a href="#how-it-works" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} px-3 py-2 rounded-md text-sm font-medium transition-colors`}>How It Works</a>
+                <a href="#features" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} px-3 py-2 rounded-md text-sm font-medium transition-colors`}>Features</a>
+                <a href="#get-started" className={`${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} px-3 py-2 rounded-md text-sm font-medium transition-colors`}>Get Started</a>
+              </nav>
               <button
                 onClick={toggleTheme}
                 className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
@@ -49,18 +54,27 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
               >
                 {isDarkMode ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-gray-700" />}
               </button>
-              <div className="hidden md:block">
-                <nav className="flex items-center space-x-4">
-                  <a href="#how-it-works" className={`${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'} px-3 py-2 rounded-md text-sm font-medium transition-colors`}>How It Works</a>
-                  <a href="#features" className={`${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'} px-3 py-2 rounded-md text-sm font-medium transition-colors`}>Features</a>
-                  <a href="#get-started" className={`${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'} px-3 py-2 rounded-md text-sm font-medium transition-colors`}>Get Started</a>
-                </nav>
-              </div>
               <button 
                 onClick={onGetStarted}
-                className="hidden md:flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-transform transform hover:scale-105"
+                className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-transform transform hover:scale-105"
               >
                 Launch App <ArrowRight className="ml-2 h-4 w-4" />
+              </button>
+            </div>
+            {/* Mobile menu */}
+            <div className="md:hidden flex items-center gap-2">
+              <button
+                onClick={toggleTheme}
+                className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                aria-label="Toggle theme"
+              >
+                {isDarkMode ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-gray-700" />}
+              </button>
+              <button 
+                onClick={onGetStarted}
+                className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg text-xs transition-transform transform hover:scale-105"
+              >
+                Launch
               </button>
             </div>
           </div>

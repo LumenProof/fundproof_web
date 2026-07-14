@@ -335,7 +335,7 @@ export default function Home() {
             <ShieldCheck aria-hidden />
             <span>FundProof</span>
           </div>
-          <div className="header-actions" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div className="header-actions">
             <button 
               className="theme-toggle" 
               onClick={toggleTheme}

@@ -50,8 +50,25 @@ main {
 }
 
 .headline {
-  max-width: 780px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  max-width: 100%;
   margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.headline > div:first-child {
+  flex: 1;
+  min-width: 300px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .brand {
@@ -180,13 +197,34 @@ button:active {
 .theme-toggle {
   width: auto;
   padding: 8px 12px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  color: var(--ink);
+  background: #3a3a3a;
+  border: 0;
+  border-radius: 8px;
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .theme-toggle:hover {
-  background: var(--line);
+  background: #4a4a4a;
+}
+
+.light-mode .theme-toggle {
+  background: #3a3a3a;
+}
+
+.light-mode .theme-toggle:hover {
+  background: #4a4a4a;
+}
+
+.secondary-button.small {
+  padding: 8px 12px;
+  font-size: 14px;
 }
 
 button:disabled {
