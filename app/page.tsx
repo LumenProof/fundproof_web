@@ -121,12 +121,6 @@ export default function Home() {
       setError('');
       console.log('Attempting to connect wallet...');
       
-      // Check if Freighter is available in the browser
-      if (typeof window === 'undefined' || !window.freighter) {
-        setError('Freighter wallet not detected. Please install the Freighter browser extension first.');
-        return;
-      }
-      
       // First check if we're already allowed/connected
       const isAlreadyAllowed = await isAllowed();
       const isAlreadyConnected = await isConnected();
@@ -142,7 +136,7 @@ export default function Home() {
         return;
       }
       
-      // Request permission to access the wallet
+      // Request permission to access the wallet - this will throw if Freighter isn't installed
       console.log('Requesting wallet permissions...');
       const allowed = await setAllowed();
       console.log('Permission granted:', allowed);
@@ -160,7 +154,7 @@ export default function Home() {
       }
     } catch (err) {
       console.error('Wallet connection error details:', err);
-      setError('Failed to connect to Freighter wallet. Please ensure it is installed, unlocked, and try again.');
+      setError('Freighter wallet not detected. Please install the Freighter browser extension from https://www.freighter.app/ and ensure it is unlocked.');
     }
   };
 
