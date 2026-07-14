@@ -1,7 +1,16 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
-import { CheckCircle2, FileKey2, PlayCircle, ShieldCheck, WalletCards, XCircle } from 'lucide-react';
+import { FormEvent, useState, useEffect } from 'react';
+import { 
+  CheckCircle2, FileKey2, PlayCircle, ShieldCheck, WalletCards, XCircle, 
+  Wallet, ArrowRight, History, QrCode, Copy, Check, ExternalLink, 
+  Loader2, ChevronRight, Info
+} from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { 
+  isConnected, getPublicKey, connect, 
+  signTransaction, setAllowed, requestAccess
+} from '@stellar/freighter-api';
 
 type AttestationResponse = {
   id: string;
@@ -38,10 +47,28 @@ type GeneratedProofResponse = {
   nextStep: string;
 };
 
+type ProofHistoryItem = {
+  id: string;
+  attestationId: string;
+  createdAt: number;
+  thresholdCents: number;
+  stellarAddress: string;
+  verified: boolean;
+  proofUrl?: string;
+};
+
 const apiBase = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:4000';
 
+const STEPS = [
+  { id: 'connect', title: 'Connect Wallet', description: 'Connect your Stellar wallet' },
+  { id: 'details', title: 'Set Parameters', description: 'Define your funding threshold' },
+  { id: 'attestation', title: 'Generate Attestation', description: 'Create your proof attestation' },
+  { id: 'proof', title: 'Generate ZK Proof', description: 'Create your zero-knowledge proof' },
+  { id: 'share', title: 'Share Proof', description: 'Share your verified proof' },
+];
+
 export default function Home() {
-  const [stellarAddress, setStellarAddress] = useState('GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF');
+  const [stellarAddress, setStellarAddress] = useState('');
   const [threshold, setThreshold] = useState('1000');
   const [attestation, setAttestation] = useState<AttestationResponse | null>(null);
   const [proofInput, setProofInput] = useState<ProofInputResponse | null>(null);
@@ -49,6 +76,80 @@ export default function Home() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [proofLoading, setProofLoading] = useState(false);
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletPublicKey, setWalletPublicKey] = useState('');
+  const [currentStep, setCurrentStep] = useState(0);
+  const [proofHistory, setProofHistory] = useState<ProofHistoryItem[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+
+  useEffect(() => {
+    const checkWalletConnection = async () => {
+      try {
+        const connected = await isConnected();
+        if (connected) {
+          const pubKey = await getPublicKey();
+          setWalletPublicKey(pubKey);
+          setStellarAddress(pubKey);
+          setWalletConnected(true);
+          setCurrentStep(1);
+        }
+      } catch (err) {
+        console.log('Freighter not available');
+      }
+    };
+    checkWalletConnection();
+    
+    const savedHistory = localStorage.getItem('fundproof_history');
+    if (savedHistory) {
+      setProofHistory(JSON.parse(savedHistory));
+    }
+  }, []);
+
+  const connectWallet = async () => {
+    try {
+      setError('');
+      const allowed = await setAllowed();
+      if (allowed) {
+        const pubKey = await getPublicKey();
+        setWalletPublicKey(pubKey);
+        setStellarAddress(pubKey);
+        setWalletConnected(true);
+        setCurrentStep(1);
+      } else {
+        setError('Wallet connection rejected. Please allow access to continue.');
+      }
+    } catch (err) {
+      setError('Failed to connect to Freighter wallet. Please ensure it is installed and unlocked.');
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy');
+    }
+  };
+
+  const saveToHistory = (proof: GeneratedProofResponse, attestationData: AttestationResponse) => {
+    const newItem: ProofHistoryItem = {
+      id: Date.now().toString(),
+      attestationId: proof.attestationId,
+      createdAt: Date.now(),
+      thresholdCents: attestationData.thresholdCents,
+      stellarAddress: attestationData.stellarAddress,
+      verified: proof.verified,
+      proofUrl: `${window.location.origin}/verify/${proof.attestationId}`,
+    };
+    
+    const updatedHistory = [newItem, ...proofHistory].slice(0, 20);
+    setProofHistory(updatedHistory);
+    localStorage.setItem('fundproof_history', JSON.stringify(updatedHistory));
+  };
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -72,6 +173,7 @@ export default function Home() {
 
       const nextAttestation = (await attestationResponse.json()) as AttestationResponse;
       setAttestation(nextAttestation);
+      setCurrentStep(2);
 
       const proofResponse = await fetch(`${apiBase}/proof-input`, {
         method: 'POST',
@@ -111,7 +213,10 @@ export default function Home() {
         throw new Error(await proofResponse.text());
       }
 
-      setGeneratedProof((await proofResponse.json()) as GeneratedProofResponse);
+      const proof = (await proofResponse.json()) as GeneratedProofResponse;
+      setGeneratedProof(proof);
+      setCurrentStep(3);
+      saveToHistory(proof, attestation);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Proof generation failed.');
     } finally {
@@ -121,6 +226,12 @@ export default function Home() {
 
   const passes = attestation ? attestation.demo.mockBalanceCents >= attestation.thresholdCents : false;
 
+  const getStepStatus = (stepIndex: number) => {
+    if (stepIndex < currentStep) return 'complete';
+    if (stepIndex === currentStep) return 'current';
+    return 'pending';
+  };
+
   return (
     <main>
       <section className="shell">
@@ -129,6 +240,15 @@ export default function Home() {
             <ShieldCheck aria-hidden />
             <span>FundProof</span>
           </div>
+          <div className="header-actions">
+            <button 
+              className="secondary-button small" 
+              onClick={() => setShowHistory(!showHistory)}
+            >
+              <History size={16} />
+              History
+            </button>
+          </div>
           <h1>Private proof-of-funds for Stellar USDC</h1>
           <p>
             Prove a wallet meets a funding threshold without revealing the exact balance. The local demo uses a backend-signed attestation and Circom/Groth16 circuit input ready for Stellar verification.
@@ -136,90 +256,264 @@ export default function Home() {
         </div>
 
         <div className="workspace">
-          <form onSubmit={submit} className="panel">
-            <div className="panel-title">
-              <WalletCards aria-hidden />
-              <h2>Create Claim</h2>
+          <div className="progress-steps">
+            {STEPS.map((step, index) => (
+              <div key={step.id} className={`step ${getStepStatus(index)}`}>
+                <div className="step-indicator">
+                  {index < currentStep ? <CheckCircle2 size={18} /> : <span>{index + 1}</span>}
+                </div>
+                <div className="step-content">
+                  <h3>{step.title}</h3>
+                  <p>{step.description}</p>
+                </div>
+                {index < STEPS.length - 1 && <ChevronRight className="step-arrow" size={16} />}
+              </div>
+            ))}
+          </div>
+
+          {showHistory && (
+            <div className="panel history-panel">
+              <div className="panel-title">
+                <History aria-hidden />
+                <h2>Proof History</h2>
+              </div>
+              {proofHistory.length === 0 ? (
+                <p className="empty">No proofs generated yet. Your proof history will appear here.</p>
+              ) : (
+                <div className="history-list">
+                  {proofHistory.map((item) => (
+                    <div key={item.id} className="history-item">
+                      <div className="history-status">
+                        {item.verified ? <CheckCircle2 className="status-icon pass" /> : <XCircle className="status-icon fail" />}
+                      </div>
+                      <div className="history-details">
+                        <p className="address">{item.stellarAddress.slice(0, 12)}...{item.stellarAddress.slice(-8)}</p>
+                        <p className="threshold">{formatUsd(item.thresholdCents)}</p>
+                        <p className="date">{new Date(item.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      {item.proofUrl && (
+                        <button 
+                          className="icon-button"
+                          onClick={() => copyToClipboard(item.proofUrl!)}
+                          title="Copy link"
+                        >
+                          <Copy size={14} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+          )}
 
-            <label>
-              Stellar address
-              <input value={stellarAddress} onChange={(event) => setStellarAddress(event.target.value)} />
-            </label>
+          {!walletConnected ? (
+            <div className="panel connect-panel">
+              <div className="panel-title">
+                <Wallet aria-hidden />
+                <h2>Connect Your Wallet</h2>
+              </div>
+              <div className="connect-content">
+                <div className="info-box">
+                  <Info size={20} />
+                  <p>To use FundProof, you need to connect your Freighter wallet. Freighter is the official wallet for the Stellar network.</p>
+                </div>
+                <button onClick={connectWallet} className="primary-button">
+                  <Wallet aria-hidden />
+                  Connect Freighter Wallet
+                </button>
+                {error && <p className="error">{error}</p>}
+                <div className="install-note">
+                  <p>Don't have Freighter installed?</p>
+                  <a 
+                    href="https://www.freighter.app/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="link"
+                  >
+                    Install Freighter <ExternalLink size={12} />
+                  </a>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={submit} className="panel">
+              <div className="panel-title">
+                <WalletCards aria-hidden />
+                <h2>Create Your Claim</h2>
+              </div>
 
-            <label>
-              Minimum USDC
-              <input value={threshold} onChange={(event) => setThreshold(event.target.value)} inputMode="decimal" />
-            </label>
+              <div className="wallet-info">
+                <div className="connected-wallet">
+                  <CheckCircle2 className="connected-icon" />
+                  <span>Connected: {walletPublicKey.slice(0, 12)}...{walletPublicKey.slice(-8)}</span>
+                </div>
+              </div>
 
-            <button type="submit" disabled={loading}>
-              <FileKey2 aria-hidden />
-              {loading ? 'Preparing...' : 'Generate attestation'}
-            </button>
+              <label>
+                Stellar address
+                <input 
+                  value={stellarAddress} 
+                  onChange={(event) => setStellarAddress(event.target.value)}
+                  placeholder="Enter your Stellar public key"
+                />
+              </label>
 
-            {error ? <p className="error">{error}</p> : null}
-          </form>
+              <label>
+                Minimum USDC threshold
+                <input 
+                  value={threshold} 
+                  onChange={(event) => setThreshold(event.target.value)} 
+                  inputMode="decimal"
+                  placeholder="1000.00"
+                />
+                <small>This is the minimum balance you want to prove you hold. Your exact balance remains private.</small>
+              </label>
+
+              <button type="submit" disabled={loading}>
+                {loading ? <Loader2 className="spinner" /> : <FileKey2 aria-hidden />}
+                {loading ? 'Preparing your attestation...' : 'Generate attestation'}
+              </button>
+
+              {error ? <p className="error">{error}</p> : null}
+            </form>
+          )}
 
           <section className="panel result-panel">
             <div className="panel-title">
-              {attestation && passes ? <CheckCircle2 aria-hidden /> : <XCircle aria-hidden />}
+              {attestation && passes ? <CheckCircle2 aria-hidden /> : attestation ? <XCircle aria-hidden /> : <ShieldCheck aria-hidden />}
               <h2>Verification Package</h2>
             </div>
 
             {!attestation ? (
-              <p className="empty">Generate an attestation to prepare private circuit inputs and public signals.</p>
+              <div className="empty-state">
+                <ShieldCheck size={48} className="empty-icon" />
+                <p className="empty">Connect your wallet and generate an attestation to prepare private circuit inputs and public signals.</p>
+              </div>
             ) : (
               <div className="result">
                 <div className={passes ? 'status pass' : 'status fail'}>
-                  {passes ? 'Local balance satisfies threshold' : 'Local balance is below threshold'}
+                  {passes ? '✓ Local balance satisfies threshold' : '✗ Local balance is below threshold'}
                 </div>
 
-                <dl>
-                  <div>
+                <div className="stats-grid">
+                  <div className="stat-card">
                     <dt>Mock balance</dt>
                     <dd>{formatUsd(attestation.demo.mockBalanceCents)}</dd>
                   </div>
-                  <div>
+                  <div className="stat-card">
                     <dt>Threshold</dt>
                     <dd>{formatUsd(attestation.thresholdCents)}</dd>
                   </div>
-                  <div>
-                    <dt>Attestation hash</dt>
-                    <dd>{attestation.attestationHash}</dd>
-                  </div>
-                  <div>
+                  <div className="stat-card">
                     <dt>Expires</dt>
-                    <dd>{new Date(attestation.expiresAt * 1000).toLocaleString()}</dd>
+                    <dd>{new Date(attestation.expiresAt * 1000).toLocaleDateString()}</dd>
                   </div>
-                </dl>
+                </div>
 
-                {proofInput ? (
-                  <>
-                    <button type="button" className="secondary-button" onClick={generateProof} disabled={proofLoading || !passes}>
-                      <PlayCircle aria-hidden />
-                      {proofLoading ? 'Generating proof...' : 'Generate ZK proof'}
+                <div className="details-section">
+                  <h3>Technical Details</h3>
+                  <dl>
+                    <div>
+                      <dt>Attestation hash</dt>
+                      <dd className="hash">{attestation.attestationHash}</dd>
+                    </div>
+                    <div>
+                      <dt>Address hash</dt>
+                      <dd className="hash">{attestation.addressHash}</dd>
+                    </div>
+                  </dl>
+                </div>
+
+                {proofInput && !generatedProof && (
+                  <div className="action-section">
+                    <button 
+                      type="button" 
+                      className="secondary-button primary" 
+                      onClick={generateProof} 
+                      disabled={proofLoading || !passes}
+                    >
+                      {proofLoading ? <Loader2 className="spinner" /> : <PlayCircle aria-hidden />}
+                      {proofLoading ? 'Generating your ZK proof...' : 'Generate Zero-Knowledge Proof'}
                     </button>
-                    <pre>{JSON.stringify(proofInput.publicSignals, null, 2)}</pre>
-                  </>
-                ) : null}
+                    
+                    <div className="code-block">
+                      <div className="code-header">
+                        <span>Public Signals</span>
+                        <button 
+                          className="copy-btn" 
+                          onClick={() => copyToClipboard(JSON.stringify(proofInput.publicSignals, null, 2))}
+                        >
+                          {copied ? <Check size={14} /> : <Copy size={14} />}
+                        </button>
+                      </div>
+                      <pre>{JSON.stringify(proofInput.publicSignals, null, 2)}</pre>
+                    </div>
+                  </div>
+                )}
 
-                {generatedProof ? (
-                  <div className="proof-box">
-                    <div className="status pass">
+                {generatedProof && (
+                  <div className="proof-complete">
+                    <div className="status pass large">
+                      <CheckCircle2 size={24} />
                       Groth16 proof verified locally
                     </div>
-                    <dl>
-                      <div>
+                    
+                    <div className="proof-stats">
+                      <div className="stat-card">
                         <dt>Public signals</dt>
                         <dd>{generatedProof.publicSignals.length}</dd>
                       </div>
-                      <div>
+                      <div className="stat-card">
                         <dt>Proof file</dt>
                         <dd>{generatedProof.files.proof}</dd>
                       </div>
-                    </dl>
+                    </div>
+
+                    <div className="share-section">
+                      <h3>Share Your Proof</h3>
+                      <div className="share-actions">
+                        <button 
+                          className="secondary-button"
+                          onClick={() => setShowQR(!showQR)}
+                        >
+                          <QrCode size={16} />
+                          {showQR ? 'Hide QR Code' : 'Show QR Code'}
+                        </button>
+                        <button 
+                          className="secondary-button"
+                          onClick={() => copyToClipboard(`${window.location.origin}/verify/${generatedProof.attestationId}`)}
+                        >
+                          <Copy size={16} />
+                          {copied ? 'Copied!' : 'Copy Proof Link'}
+                        </button>
+                      </div>
+                      
+                      {showQR && (
+                        <div className="qr-container">
+                          <QRCodeSVG 
+                            value={`${window.location.origin}/verify/${generatedProof.attestationId}`}
+                            size={200}
+                          />
+                          <p>Scan to verify this proof</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="code-block">
+                      <div className="code-header">
+                        <span>Full Proof Data</span>
+                        <button 
+                          className="copy-btn"
+                          onClick={() => copyToClipboard(JSON.stringify(generatedProof, null, 2))}
+                        >
+                          {copied ? <Check size={14} /> : <Copy size={14} />}
+                        </button>
+                      </div>
+                      <pre>{JSON.stringify(generatedProof, null, 2)}</pre>
+                    </div>
                   </div>
-                ) : null}
+                )}
               </div>
             )}
           </section>
