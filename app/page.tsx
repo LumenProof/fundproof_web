@@ -394,16 +394,26 @@ export default function Home() {
                 <div className="connected-wallet">
                   <CheckCircle2 className="connected-icon" />
                   <span>Connected: {walletPublicKey.slice(0, 12)}...{walletPublicKey.slice(-8)}</span>
+                  <button 
+                    type="button" 
+                    onClick={disconnectWallet}
+                    className="disconnect-btn"
+                  >
+                    Disconnect
+                  </button>
                 </div>
               </div>
 
               <label>
-                Stellar address
+                Stellar address (read-only)
                 <input 
                   value={stellarAddress} 
-                  onChange={(event) => setStellarAddress(event.target.value)}
-                  placeholder="Enter your Stellar public key"
+                  readOnly
+                  disabled
+                  placeholder="Connect your wallet to populate this field"
+                  className="readonly-input"
                 />
+                <small>This is automatically populated from your connected Freighter wallet and cannot be edited.</small>
               </label>
 
               <label>
