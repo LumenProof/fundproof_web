@@ -1,47 +1,80 @@
 'use client';
 
-import { ArrowRight, ShieldCheck, FileKey2, PlayCircle, Zap, Bot, Star } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowRight, ShieldCheck, FileKey2, PlayCircle, Zap, Bot, Star, Sun, Moon } from 'lucide-react';
 
 type LandingPageProps = {
   onGetStarted: () => void;
 };
 
 export default function LandingPage({ onGetStarted }: LandingPageProps) {
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  useEffect(() => {
+    // Check saved preference or default to dark
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      setIsDarkMode(false);
+      document.documentElement.classList.add('light-mode');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newIsDarkMode = !isDarkMode;
+    setIsDarkMode(newIsDarkMode);
+    if (newIsDarkMode) {
+      document.documentElement.classList.remove('light-mode');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.add('light-mode');
+      localStorage.setItem('theme', 'light');
+    }
+  };
+
   return (
-    <div className="bg-gray-900 text-white min-h-screen flex flex-col">
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
       {/* Header */}
-      <header className="bg-gray-900/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className={`${isDarkMode ? 'bg-gray-900/80' : 'bg-white/80'} backdrop-blur-sm sticky top-0 z-50`}>
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <ShieldCheck className="h-8 w-8 text-blue-500" />
-              <span className="text-2xl font-bold ml-3 text-gray-100">FundProof</span>
+              <ShieldCheck className={`h-8 w-8 text-blue-500`} />
+              <span className={`text-2xl font-bold ml-3 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>FundProof</span>
             </div>
-            <div className="hidden md:block">
-              <nav className="flex items-center space-x-4">
-                <a href="#how-it-works" className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">How It Works</a>
-                <a href="#features" className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Features</a>
-                <a href="#get-started" className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Get Started</a>
-              </nav>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={toggleTheme}
+                className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+                aria-label="Toggle theme"
+              >
+                {isDarkMode ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-gray-700" />}
+              </button>
+              <div className="hidden md:block">
+                <nav className="flex items-center space-x-4">
+                  <a href="#how-it-works" className={`${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'} px-3 py-2 rounded-md text-sm font-medium transition-colors`}>How It Works</a>
+                  <a href="#features" className={`${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'} px-3 py-2 rounded-md text-sm font-medium transition-colors`}>Features</a>
+                  <a href="#get-started" className={`${isDarkMode ? 'text-gray-300 hover:bg-gray-700 hover:text-white' : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'} px-3 py-2 rounded-md text-sm font-medium transition-colors`}>Get Started</a>
+                </nav>
+              </div>
+              <button 
+                onClick={onGetStarted}
+                className="hidden md:flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-transform transform hover:scale-105"
+              >
+                Launch App <ArrowRight className="ml-2 h-4 w-4" />
+              </button>
             </div>
-            <button 
-              onClick={onGetStarted}
-              className="hidden md:flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-transform transform hover:scale-105"
-            >
-              Launch App <ArrowRight className="ml-2 h-4 w-4" />
-            </button>
           </div>
         </div>
       </header>
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="text-center py-20 px-4 sm:px-6 lg:px-8 bg-gray-900">
+        <section className={`text-center py-20 px-4 sm:px-6 lg:px-8 transition-colors duration-300 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
           <div className="w-full max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 text-gray-100">
+            <h1 className={`text-4xl md:text-6xl font-bold mb-4 transition-colors duration-300 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
               Prove Your Financial Standing, Privately.
             </h1>
-            <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-8">
+            <p className={`text-lg md:text-xl max-w-2xl mx-auto mb-8 transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Leverage Zero-Knowledge Proofs on the Stellar network to generate cryptographic attestations of your account's funding level without revealing your balance.
             </p>
             <button 
@@ -54,37 +87,37 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
         </section>
 
         {/* How It Works Section */}
-        <section id="how-it-works" className="py-20 bg-gray-800">
+        <section id="how-it-works" className={`py-20 transition-colors duration-300 ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-100">How It Works</h2>
-              <p className="text-lg text-gray-400 mt-4 max-w-3xl mx-auto">A simple, three-step process to generate your private proof-of-funds.</p>
+              <h2 className={`text-3xl md:text-4xl font-bold transition-colors duration-300 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>How It Works</h2>
+              <p className={`text-lg mt-4 max-w-3xl mx-auto transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>A simple, three-step process to generate your private proof-of-funds.</p>
             </div>
             <div className="grid md:grid-cols-3 gap-8 text-center">
               <div className="flex flex-col items-center">
-                <div className="bg-gray-700 rounded-full p-4 mb-4">
+                <div className={`rounded-full p-4 mb-4 transition-colors duration-300 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
                   <FileKey2 className="h-10 w-10 text-blue-400" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">1. Connect & Set Threshold</h3>
-                <p className="text-gray-400">
+                <h3 className={`text-xl font-semibold mb-2 transition-colors duration-300 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>1. Connect & Set Threshold</h3>
+                <p className={`transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   Connect your Freighter wallet and specify the minimum USDC balance you want to prove you hold.
                 </p>
               </div>
               <div className="flex flex-col items-center">
-                <div className="bg-gray-700 rounded-full p-4 mb-4">
+                <div className={`rounded-full p-4 mb-4 transition-colors duration-300 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
                   <Zap className="h-10 w-10 text-blue-400" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">2. Generate Attestation</h3>
-                <p className="text-gray-400">
+                <h3 className={`text-xl font-semibold mb-2 transition-colors duration-300 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>2. Generate Attestation</h3>
+                <p className={`transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   Our service generates a signed attestation confirming your balance meets the threshold, without revealing the exact amount.
                 </p>
               </div>
               <div className="flex flex-col items-center">
-                <div className="bg-gray-700 rounded-full p-4 mb-4">
+                <div className={`rounded-full p-4 mb-4 transition-colors duration-300 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
                   <ShieldCheck className="h-10 w-10 text-blue-400" />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">3. Create & Share ZK Proof</h3>
-                <p className="text-gray-400">
+                <h3 className={`text-xl font-semibold mb-2 transition-colors duration-300 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>3. Create & Share ZK Proof</h3>
+                <p className={`transition-colors duration-300 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   A Zero-Knowledge Proof is created based on the attestation. Share the proof with anyone to verify your claim.
                 </p>
               </div>
