@@ -92,6 +92,7 @@ export default function Home() {
 
   const disconnectWallet = async () => {
     try {
+      // First set all states to disconnected
       setWalletConnected(false);
       setWalletPublicKey('');
       setStellarAddress('');
@@ -101,6 +102,10 @@ export default function Home() {
       setProofInput(null);
       setGeneratedProof(null);
       setError('');
+      
+      // Force prevent auto-reconnection by adding a small delay
+      // and only allow reconnection if user manually clicks connect again
+      sessionStorage.setItem('walletManuallyDisconnected', 'true');
     } catch (err) {
       console.error('Error disconnecting wallet:', err);
     }
@@ -108,6 +113,12 @@ export default function Home() {
 
   useEffect(() => {
     const checkWalletConnection = async () => {
+      // Don't auto-reconnect if user manually disconnected
+      const manuallyDisconnected = sessionStorage.getItem('walletManuallyDisconnected');
+      if (manuallyDisconnected) {
+        return;
+      }
+      
       try {
         const connected = await isConnected();
         const allowed = await isAllowed();
@@ -133,6 +144,8 @@ export default function Home() {
   const connectWallet = async () => {
     try {
       setError('');
+      // Clear the manual disconnect flag when user tries to connect again
+      sessionStorage.removeItem('walletManuallyDisconnected');
       console.log('Attempting to connect wallet...');
       
       // First check if we're already allowed/connected
