@@ -90,19 +90,33 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
 
+  const disconnectWallet = async () => {
+    try {
+      setWalletConnected(false);
+      setWalletPublicKey('');
+      setStellarAddress('');
+      setCurrentStep(0);
+      // Reset all form states
+      setAttestation(null);
+      setProofInput(null);
+      setGeneratedProof(null);
+      setError('');
+    } catch (err) {
+      console.error('Error disconnecting wallet:', err);
+    }
+  };
+
   useEffect(() => {
     const checkWalletConnection = async () => {
       try {
-        // Check if Freighter is available
-        if (typeof window !== 'undefined' && window.freighter) {
-          const connected = await isConnected();
-          if (connected) {
-            const pubKey = await getPublicKey();
-            setWalletPublicKey(pubKey);
-            setStellarAddress(pubKey);
-            setWalletConnected(true);
-            setCurrentStep(1);
-          }
+        const connected = await isConnected();
+        const allowed = await isAllowed();
+        if (connected && allowed) {
+          const pubKey = await getPublicKey();
+          setWalletPublicKey(pubKey);
+          setStellarAddress(pubKey);
+          setWalletConnected(true);
+          setCurrentStep(1);
         }
       } catch (err) {
         console.log('Freighter not available or not connected:', err);
