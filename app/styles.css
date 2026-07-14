@@ -618,20 +618,3 @@ label small {
     display: none;
   }
 }
-  border-radius: 6px;
-  background: #101715;
-  color: #edf7f1;
-  padding: 14px;
-  font-size: 13px;
-}
-
-@media (max-width: 840px) {
-  .shell {
-    width: min(100% - 24px, 640px);
-    padding: 28px 0;
-  }
-
-  .workspace {
-    grid-template-columns: 1fr;
-  }
-}
