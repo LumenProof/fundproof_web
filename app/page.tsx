@@ -93,11 +93,6 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
 
-  if (!showApp) {
-    return <LandingPage onGetStarted={() => setShowApp(true)} />;
-  }
-
-
   const disconnectWallet = async () => {
     try {
       // First set all states to disconnected
@@ -164,6 +159,11 @@ export default function Home() {
 
     initializeApp();
   }, [showApp]);
+
+  console.log('Rendering, showApp =', showApp);
+  if (!showApp) {
+    return <LandingPage onGetStarted={() => setShowApp(true)} />;
+  }
 
   const connectWallet = async () => {
     try {
@@ -294,6 +294,10 @@ export default function Home() {
   }
 
   const passes = attestation ? attestation.demo.mockBalanceCents >= attestation.thresholdCents : false;
+
+  const formatUsd = (cents: number) => {
+    return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
 
   const getStepStatus = (stepIndex: number) => {
     if (stepIndex < currentStep) return 'complete';

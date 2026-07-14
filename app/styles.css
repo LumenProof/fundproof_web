@@ -1,12 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
 :root {
-  color-scheme: dark;
+  color-scheme: light dark;
+  /* Dark mode defaults */
   --ink: #e0e0e0;
   --muted: #a0a0a0;
   --line: #3a3a3a;
   --panel: #1e1e1e;
   --bg: #121212;
+  --green: #28a745;
+  --red: #dc3545;
+  --blue: #007bff;
+  --gold: #ffc107;
+}
+
+/* Light mode */
+:root.light-mode {
+  --ink: #121212;
+  --muted: #555555;
+  --line: #d1d5db;
+  --panel: #ffffff;
+  --bg: #f3f4f6;
   --green: #28a745;
   --red: #dc3545;
   --blue: #007bff;
