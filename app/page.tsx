@@ -148,9 +148,10 @@ export default function Home() {
       sessionStorage.removeItem('walletManuallyDisconnected');
       console.log('Attempting to connect wallet...');
       
-      // Always request permissions again - this will trigger the Freighter popup
+      // Request wallet permissions. This will trigger the Freighter pop-up
+      // only if the user has not already approved the site. If the site is
+      // already approved, it will return the public key without a prompt.
       console.log('Requesting wallet permissions...');
-      // requestAccess() always prompts the user and returns the public key
       const pubKey = await requestAccess();
       console.log('Permission granted, public key:', pubKey);
       
