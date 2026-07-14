@@ -120,14 +120,34 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const checkWalletConnection = async () => {
-      // Don't auto-reconnect if user manually disconnected
-      const manuallyDisconnected = sessionStorage.getItem('walletManuallyDisconnected');
-      if (manuallyDisconnected) {
-        return;
-      }
-      
+    // This effect only runs when showApp becomes true (user clicks Get Started)
+    if (!showApp) return;
+    
+    // Only run browser-specific code after app is activated
+    const initializeApp = async () => {
+      // Load history first
       try {
+        const savedHistory = localStorage.getItem('fundproof_history');
+        if (savedHistory) {
+          setProofHistory(JSON.parse(savedHistory));
+        }
+      } catch (err) {
+        console.error('Failed to load proof history:', err);
+        try { localStorage.removeItem('fundproof_history'); } catch (e) {}
+      }
+
+      // Check wallet connection
+      try {
+        // Safely access sessionStorage only if it exists
+        let manuallyDisconnected = null;
+        try {
+          manuallyDisconnected = window?.sessionStorage?.getItem('walletManuallyDisconnected');
+        } catch (e) {
+          console.log('Session storage not accessible');
+        }
+        
+        if (manuallyDisconnected) return;
+
         const connected = await isConnected();
         const allowed = await isAllowed();
         if (connected && allowed) {
@@ -138,16 +158,12 @@ export default function Home() {
           setCurrentStep(1);
         }
       } catch (err) {
-        console.log('Freighter not available or not connected:', err);
+        console.log('Wallet not available:', err);
       }
     };
-    checkWalletConnection();
-    
-    const savedHistory = localStorage.getItem('fundproof_history');
-    if (savedHistory) {
-      setProofHistory(JSON.parse(savedHistory));
-    }
-  }, []);
+
+    initializeApp();
+  }, [showApp]);
 
   const connectWallet = async () => {
     try {
