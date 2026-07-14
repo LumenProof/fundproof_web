@@ -73,7 +73,10 @@ const STEPS = [
   { id: 'share', title: 'Share Proof', description: 'Share your verified proof' },
 ];
 
+import LandingPage from './landing-page';
+
 export default function Home() {
+  const [showApp, setShowApp] = useState(false);
   const [stellarAddress, setStellarAddress] = useState('');
   const [threshold, setThreshold] = useState('1000');
   const [attestation, setAttestation] = useState<AttestationResponse | null>(null);
@@ -89,6 +92,11 @@ export default function Home() {
   const [showHistory, setShowHistory] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
+
+  if (!showApp) {
+    return <LandingPage onGetStarted={() => setShowApp(true)} />;
+  }
+
 
   const disconnectWallet = async () => {
     try {
