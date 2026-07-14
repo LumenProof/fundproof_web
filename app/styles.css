@@ -198,6 +198,426 @@ pre {
   max-height: 260px;
   overflow: auto;
   margin: 0;
+  background: #f8f9f8;
+  border-radius: 6px;
+  padding: 14px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* New styles for enhanced frontend */
+.header-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.small {
+  width: auto;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+.progress-steps {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 18px;
+  overflow-x: auto;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 12px;
+  min-width: 160px;
+}
+
+.step:last-child .step-arrow {
+  display: none;
+}
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.step.pending .step-indicator {
+  background: var(--bg);
+  color: var(--muted);
+  border: 2px solid var(--line);
+}
+
+.step.current .step-indicator {
+  background: var(--gold);
+  color: white;
+}
+
+.step.complete .step-indicator {
+  background: var(--green);
+  color: white;
+}
+
+.step-content h3 {
+  margin: 0 0 2px;
+  font-size: 15px;
+}
+
+.step-content p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.step-arrow {
+  color: var(--muted);
+  margin-left: auto;
+}
+
+.history-panel {
+  grid-column: 1 / -1;
+}
+
+.history-list {
+  display: grid;
+  gap: 12px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: var(--bg);
+  border-radius: 6px;
+}
+
+.history-status {
+  flex-shrink: 0;
+}
+
+.status-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.status-icon.pass {
+  color: var(--green);
+}
+
+.status-icon.fail {
+  color: var(--red);
+}
+
+.history-details {
+  flex: 1;
+  display: grid;
+  gap: 4px;
+}
+
+.history-details .address {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.history-details .threshold {
+  margin: 0;
+  font-size: 13px;
+}
+
+.history-details .date {
+  margin: 0;
+  font-size: 12px;
+}
+
+.icon-button {
+  width: auto;
+  background: transparent;
+  color: var(--muted);
+  padding: 6px;
+}
+
+.icon-button:hover {
+  color: var(--ink);
+}
+
+.connect-panel {
+  grid-column: 1;
+}
+
+.connect-content {
+  display: grid;
+  gap: 20px;
+}
+
+.info-box {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background: #f0f7ff;
+  border-radius: 6px;
+  border-left: 4px solid #2563eb;
+}
+
+.info-box svg {
+  color: #2563eb;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.info-box p {
+  margin: 0;
+  font-size: 14px;
+  color: #1e40af;
+}
+
+.install-note {
+  text-align: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.install-note p {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.wallet-info {
+  margin-bottom: 16px;
+}
+
+.connected-wallet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #e1f4ed;
+  border-radius: 6px;
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.connected-icon {
+  width: 16px;
+  height: 16px;
+}
+
+label small {
+  font-weight: 400;
+  margin-top: 4px;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding: 40px 20px;
+}
+
+.empty-icon {
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.stat-card {
+  padding: 14px;
+  background: var(--bg);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.stat-card dt {
+  margin-bottom: 6px;
+}
+
+.stat-card dd {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.details-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.details-section h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+}
+
+.hash {
+  font-family: monospace;
+  font-size: 11px;
+  word-break: break-all;
+}
+
+.action-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 16px;
+}
+
+.primary {
+  background: var(--green);
+}
+
+.code-block {
+  position: relative;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  background: #263936;
+  color: white;
+  border-radius: 6px 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.copy-btn {
+  width: auto;
+  background: transparent;
+  padding: 4px;
+}
+
+.code-block pre {
+  border-radius: 0 0 6px 6px;
+  margin-top: 0;
+}
+
+.proof-complete {
+  display: grid;
+  gap: 20px;
+}
+
+.status.large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  font-size: 18px;
+}
+
+.proof-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.share-section {
+  padding: 20px;
+  background: var(--bg);
+  border-radius: 8px;
+}
+
+.share-section h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+}
+
+.share-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.share-actions .secondary-button {
+  width: auto;
+}
+
+.qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.qr-container p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .progress-steps {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .step {
+    width: 100%;
+  }
+  
+  .step-arrow {
+    display: none;
+  }
+}
   border-radius: 6px;
   background: #101715;
   color: #edf7f1;
