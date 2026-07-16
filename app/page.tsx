@@ -1,22 +1,14 @@
 'use client';
 
 import { FormEvent, useState, useEffect } from 'react';
-
-// Add TypeScript declaration for Freighter wallet on window object
-declare global {
-  interface Window {
-    freighter?: unknown;
-  }
-}
 import { 
   CheckCircle2, FileKey2, PlayCircle, ShieldCheck, WalletCards, XCircle, 
   Wallet, ArrowRight, History, QrCode, Copy, Check, ExternalLink, 
   Loader2, ChevronRight, Info, Sun, Moon
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { 
-  isConnected, getPublicKey, setAllowed, isAllowed, requestAccess
-} from '@stellar/freighter-api';
+import { useWallet } from './hooks/useWallet';
+import Header from './components/Header';
 
 type AttestationResponse = {
   id: string;
@@ -73,12 +65,10 @@ const STEPS = [
   { id: 'share', title: 'Share Proof', description: 'Share your verified proof' },
 ];
 
-import LandingPage from './landing-page';
-
 export default function Home() {
-  const [showApp, setShowApp] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [stellarAddress, setStellarAddress] = useState('');
+  const { publicKey: walletPublicKey, loading: walletLoading, error: walletError, connectWallet, disconnectWallet: disconnectWalletHook } = useWallet();
+  
   const [threshold, setThreshold] = useState('1000');
   const [attestation, setAttestation] = useState<AttestationResponse | null>(null);
   const [proofInput, setProofInput] = useState<ProofInputResponse | null>(null);
@@ -86,15 +76,12 @@ export default function Home() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [proofLoading, setProofLoading] = useState(false);
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletPublicKey, setWalletPublicKey] = useState('');
   const [currentStep, setCurrentStep] = useState(0);
   const [proofHistory, setProofHistory] = useState<ProofHistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
 
-  // Load saved theme preference
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') {
@@ -115,106 +102,34 @@ export default function Home() {
     }
   };
 
-  const disconnectWallet = async () => {
-    try {
-      // First set all states to disconnected
-      setWalletConnected(false);
-      setWalletPublicKey('');
-      setStellarAddress('');
-      setCurrentStep(0);
-      // Reset all form states
-      setAttestation(null);
-      setProofInput(null);
-      setGeneratedProof(null);
-      setError('');
-      
-      // Force prevent auto-reconnection by adding a small delay
-      // and only allow reconnection if user manually clicks connect again
-      sessionStorage.setItem('walletManuallyDisconnected', 'true');
-    } catch (err) {
-      console.error('Error disconnecting wallet:', err);
-    }
+  const disconnectWallet = () => {
+    disconnectWalletHook();
+    setCurrentStep(0);
+    setAttestation(null);
+    setProofInput(null);
+    setGeneratedProof(null);
+    setError('');
   };
 
   useEffect(() => {
-    // This effect only runs when showApp becomes true (user clicks Get Started)
-    if (!showApp) return;
-    
-    // Only run browser-specific code after app is activated
-    const initializeApp = async () => {
-      // Load history first
-      try {
-        const savedHistory = localStorage.getItem('fundproof_history');
-        if (savedHistory) {
-          setProofHistory(JSON.parse(savedHistory));
-        }
-      } catch (err) {
-        console.error('Failed to load proof history:', err);
-        try { localStorage.removeItem('fundproof_history'); } catch (e) {}
-      }
+    if (walletPublicKey) {
+      setCurrentStep(1);
+    } else {
+      setCurrentStep(0);
+    }
+  }, [walletPublicKey]);
 
-      // Check wallet connection
-      try {
-        // Safely access sessionStorage only if it exists
-        let manuallyDisconnected = null;
-        try {
-          manuallyDisconnected = window?.sessionStorage?.getItem('walletManuallyDisconnected');
-        } catch (e) {
-          console.log('Session storage not accessible');
-        }
-        
-        if (manuallyDisconnected) return;
-
-        const connected = await isConnected();
-        const allowed = await isAllowed();
-        if (connected && allowed) {
-          const pubKey = await getPublicKey();
-          setWalletPublicKey(pubKey);
-          setStellarAddress(pubKey);
-          setWalletConnected(true);
-          setCurrentStep(1);
-        }
-      } catch (err) {
-        console.log('Wallet not available:', err);
-      }
-    };
-
-    initializeApp();
-  }, [showApp]);
-
-  console.log('Rendering, showApp =', showApp);
-  if (!showApp) {
-    return <LandingPage onGetStarted={() => setShowApp(true)} />;
-  }
-
-  const connectWallet = async () => {
+  useEffect(() => {
     try {
-      setError('');
-      // Clear the manual disconnect flag when user tries to connect again
-      sessionStorage.removeItem('walletManuallyDisconnected');
-      console.log('Attempting to connect wallet...');
-      
-      // Request wallet permissions. This will trigger the Freighter pop-up
-      // only if the user has not already approved the site. If the site is
-      // already approved, it will return the public key without a prompt.
-      console.log('Requesting wallet permissions...');
-      const pubKey = await requestAccess();
-      console.log('Permission granted, public key:', pubKey);
-      
-      if (pubKey) {
-        console.log('Successfully connected, public key:', pubKey);
-        setWalletPublicKey(pubKey);
-        setStellarAddress(pubKey);
-        setWalletConnected(true);
-        setCurrentStep(1);
-      } else {
-        setError('Wallet connection rejected. Please allow access to continue.');
+      const savedHistory = localStorage.getItem('fundproof_history');
+      if (savedHistory) {
+        setProofHistory(JSON.parse(savedHistory));
       }
     } catch (err) {
-      console.error('Wallet connection error details:', err);
-      setError('Freighter wallet not detected. Please install the Freighter browser extension from https://www.freighter.app/ and ensure it is unlocked.');
+      console.error('Failed to load proof history:', err);
+      try { localStorage.removeItem('fundproof_history'); } catch (e) {}
     }
-  };
+  }, []);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -255,7 +170,7 @@ export default function Home() {
       const attestationResponse = await fetch(`${apiBase}/attestations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stellarAddress, thresholdCents }),
+        body: JSON.stringify({ stellarAddress: walletPublicKey, thresholdCents }),
       });
 
       if (!attestationResponse.ok) {
@@ -329,56 +244,22 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white overflow-x-hidden">
-      {/* Animated Background - matching landing page */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
-      {/* Header - matching landing page styling */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-2xl border-b border-slate-800/50 shadow-2xl shadow-black/20">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center gap-3 group cursor-pointer" onClick={() => setShowApp(false)}>
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
-                <div className="relative bg-gradient-to-br from-blue-500 to-cyan-400 p-2.5 rounded-xl">
-                  <ShieldCheck className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">FundProof</span>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setShowHistory(!showHistory)}
-                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 text-sm font-medium"
-              >
-                <History size={16} />
-                History
-              </button>
-              <button
-                onClick={toggleTheme}
-                className="p-2.5 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300"
-                aria-label="Toggle theme"
-              >
-                {isDarkMode ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-slate-300" />}
-              </button>
-              <button 
-                onClick={() => setShowApp(false)}
-                className="group relative inline-flex items-center gap-2 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-300"
-              >
-                Back to Home
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header
+        setShowApp={() => {}}
+        setShowHistory={setShowHistory}
+        showHistory={showHistory}
+        toggleTheme={toggleTheme}
+        isDarkMode={isDarkMode}
+      />
 
       <main className="relative pt-32 pb-20 px-6">
         <div className="max-w-5xl mx-auto">
-          {/* Hero Section */}
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent mb-4">
               Private proof-of-funds for Stellar USDC
@@ -388,7 +269,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Progress Steps */}
           <div className="mb-10">
             <div className="flex items-center justify-between overflow-x-auto pb-4 gap-4">
               {STEPS.map((step, index) => {
@@ -419,7 +299,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* History Panel */}
           {showHistory && (
             <div className="mb-8 bg-slate-900/70 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl overflow-hidden">
               <div className="p-6 border-b border-slate-800/50">
@@ -463,8 +342,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* Connect Wallet Panel */}
-          {!walletConnected ? (
+          {!walletPublicKey ? (
             <div className="bg-slate-900/70 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl overflow-hidden">
               <div className="p-6 border-b border-slate-800/50">
                 <div className="flex items-center gap-3">
@@ -483,13 +361,23 @@ export default function Home() {
                 </div>
                 <button 
                   onClick={connectWallet} 
-                  className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white font-semibold py-3.5 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105"
+                  disabled={walletLoading}
+                  className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white font-semibold py-3.5 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Wallet aria-hidden />
-                  Connect Freighter Wallet
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  {walletLoading ? (
+                    <>
+                      <Loader2 className="animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    <>
+                      <Wallet aria-hidden />
+                      Connect Freighter Wallet
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
                 </button>
-                {error && <p className="mt-4 text-red-400 text-sm bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</p>}
+                {walletError && <p className="mt-4 text-red-400 text-sm bg-red-500/10 p-3 rounded-lg border border-red-500/20">{walletError}</p>}
                 <div className="mt-6 pt-6 border-t border-slate-800">
                   <p className="text-slate-500 mb-2">Don't have Freighter installed?</p>
                   <a 
@@ -504,7 +392,6 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            /* Create Claim Form */
             <form onSubmit={submit} className="bg-slate-900/70 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl overflow-hidden">
               <div className="p-6 border-b border-slate-800/50">
                 <div className="flex items-center gap-3">
@@ -515,7 +402,6 @@ export default function Home() {
                 </div>
               </div>
               <div className="p-6 space-y-6">
-                {/* Connected Wallet Info */}
                 <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center justify-between flex-wrap gap-4">
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="text-green-400" size={20} />
