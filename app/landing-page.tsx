@@ -67,6 +67,7 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
             <p className="text-slate-400">Connect your wallet, set a threshold, and generate a shareable proof in seconds.</p>
           </div>
         </div>
+      </main>
 
       <footer className="relative border-t border-slate-800/50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
