@@ -67,7 +67,28 @@ export default function LandingPage({ onGetStarted }: LandingPageProps) {
             <p className="text-slate-400">Connect your wallet, set a threshold, and generate a shareable proof in seconds.</p>
           </div>
         </div>
-      </main>
+
+      <footer className="relative border-t border-slate-800/50">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p className="text-slate-400 text-sm">
+              &copy; {new Date().getFullYear()} FundProof. All rights reserved.
+            </p>
+            <a 
+              href="https://stellar.org" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+            >
+              Powered by 
+              <svg width="60" height="20" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M60 40C26.86 40 0 31.05 0 20S26.86 0 60 0s60 8.95 60 20-26.86 20-60 20zm0-8.5c27.61 0 50-6.94 50-11.5S87.61 8.5 60 8.5 10 15.44 10 20s22.39 11.5 50 11.5z" fill="currentColor"/>
+                <path d="M60 25.25c-16.57 0-30-4.14-30-5.25s13.43-5.25 30-5.25 30 4.14 30 5.25-13.43 5.25-30 5.25z" fill="currentColor"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
