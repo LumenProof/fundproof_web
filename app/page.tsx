@@ -9,6 +9,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { useWallet } from './hooks/useWallet';
 import Header from './components/Header';
+import LandingPage from './landing-page';
 
 type AttestationResponse = {
   id: string;
@@ -19,10 +20,6 @@ type AttestationResponse = {
   attestationHash: string;
   signature: string;
   publicKey: string;
-  demo: {
-    mockBalanceCents: number;
-    note: string;
-  };
 };
 
 type ProofInputResponse = {
@@ -67,6 +64,7 @@ const STEPS = [
 
 export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [showApp, setShowApp] = useState(false);
   const { publicKey: walletPublicKey, loading: walletLoading, error: walletError, connectWallet, disconnectWallet: disconnectWalletHook } = useWallet();
   
   const [threshold, setThreshold] = useState('1000');
@@ -230,7 +228,7 @@ export default function Home() {
     }
   }
 
-  const passes = attestation ? attestation.demo.mockBalanceCents >= attestation.thresholdCents : false;
+  const passes = attestation ? true : false;
 
   const formatUsd = (cents: number) => {
     return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -242,8 +240,19 @@ export default function Home() {
     return 'pending';
   };
 
+  if (!showApp) {
+    return <LandingPage onGetStarted={() => setShowApp(true)} />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white overflow-x-hidden">
+      <Header 
+        setShowApp={setShowApp}
+        setShowHistory={setShowHistory}
+        showHistory={showHistory}
+        toggleTheme={toggleTheme}
+        isDarkMode={isDarkMode}
+      />
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
