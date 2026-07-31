@@ -4,7 +4,7 @@ import { FormEvent, useState, useEffect } from 'react';
 import { 
   CheckCircle2, FileKey2, PlayCircle, ShieldCheck, WalletCards, XCircle, 
   Wallet, ArrowRight, History, QrCode, Copy, Check, ExternalLink, 
-  Loader2, ChevronRight, Info, Sun, Moon
+  Loader2, ChevronRight, Info, Sun, Moon, AlertTriangle
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useWallet } from './hooks/useWallet';
@@ -17,7 +17,7 @@ type AttestationResponse = {
   thresholdCents: number;
   expiresAt: number;
   addressHash: string;
-  attestationHash: string;
+  attestationHash:string;
   signature: string;
   publicKey: string;
 };
@@ -52,6 +52,13 @@ type ProofHistoryItem = {
   proofUrl?: string;
 };
 
+type NotificationType = 'error' | 'success' | 'info';
+
+type Notification = {
+  type: NotificationType;
+  message: string;
+};
+
 const apiBase = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:4000';
 
 const STEPS = [
@@ -62,6 +69,33 @@ const STEPS = [
   { id: 'share', title: 'Share Proof', description: 'Share your verified proof' },
 ];
 
+const NotificationBanner = ({ notification, onClear }: { notification: Notification | null, onClear: () => void }) => {
+  if (!notification) return null;
+
+  const iconMap: Record<NotificationType, React.ReactNode> = {
+    error: <AlertTriangle size={20} className="text-red-400" />,
+    success: <CheckCircle2 size={20} className="text-green-400" />,
+    info: <Info size={20} className="text-blue-400" />,
+  };
+
+  const baseClasses = "flex items-center gap-3 p-4 rounded-xl border";
+  const typeClasses: Record<NotificationType, string> = {
+    error: "bg-red-500/10 border-red-500/20 text-red-400",
+    success: "bg-green-500/10 border-green-500/20 text-green-400",
+    info: "bg-blue-500/10 border-blue-500/20 text-blue-400",
+  };
+
+  return (
+    <div className={`${baseClasses} ${typeClasses[notification.type]}`}>
+      {iconMap[notification.type]}
+      <p className="flex-grow text-sm">{notification.message}</p>
+      <button onClick={onClear} className="p-1 rounded-full hover:bg-white/10 transition-colors">
+        <XCircle size={18} />
+      </button>
+    </div>
+  );
+};
+
 export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showApp, setShowApp] = useState(false);
@@ -71,7 +105,7 @@ export default function Home() {
   const [attestation, setAttestation] = useState<AttestationResponse | null>(null);
   const [proofInput, setProofInput] = useState<ProofInputResponse | null>(null);
   const [generatedProof, setGeneratedProof] = useState<GeneratedProofResponse | null>(null);
-  const [error, setError] = useState('');
+  const [notification, setNotification] = useState<Notification | null>(null);
   const [loading, setLoading] = useState(false);
   const [proofLoading, setProofLoading] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
@@ -88,6 +122,13 @@ export default function Home() {
       document.documentElement.classList.add('light-mode');
     }
   }, []);
+
+  const setAndClearNotification = (notif: Notification | null, duration: number = 5000) => {
+    setNotification(notif);
+    if (notif) {
+      setTimeout(() => setNotification(null), duration);
+    }
+  };
 
   const toggleTheme = () => {
     const newIsDarkMode = !isDarkMode;
@@ -107,7 +148,7 @@ export default function Home() {
     setAttestation(null);
     setProofInput(null);
     setGeneratedProof(null);
-    setError('');
+    setNotification(null);
   };
 
   useEffect(() => {
@@ -142,13 +183,14 @@ export default function Home() {
 
         if (data.verified) {
           setGeneratedProof(data);
-          setCurrentStep(3);
+          setCurrentStep(4);
           saveToHistory(data, attestation);
           setIsPolling(false);
           setProofLoading(false);
+          setAndClearNotification({ type: 'success', message: 'Zero-knowledge proof successfully generated and verified!' });
         }
       } catch (err) {
-        setError('Failed to poll for proof status.');
+        setAndClearNotification({ type: 'error', message: 'Failed to poll for proof status. Please try again.' });
         setIsPolling(false);
         setProofLoading(false);
       }
@@ -185,7 +227,7 @@ export default function Home() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError('');
+    setNotification(null);
     setProofInput(null);
     setGeneratedProof(null);
     setAttestation(null);
@@ -206,20 +248,11 @@ export default function Home() {
       const nextAttestation = (await attestationResponse.json()) as AttestationResponse;
       setAttestation(nextAttestation);
       setCurrentStep(2);
+      setAndClearNotification({ type: 'success', message: 'Attestation created successfully. You can now generate the proof.' });
 
-      const proofResponse = await fetch(`${apiBase}/proof-input`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ attestationId: nextAttestation.id }),
-      });
-
-      if (!proofResponse.ok) {
-        throw new Error(await proofResponse.text());
-      }
-
-      setProofInput((await proofResponse.json()) as ProofInputResponse);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Request failed.');
+      const message = caught instanceof Error ? caught.message : 'Request failed.';
+      setAndClearNotification({ type: 'error', message: `Attestation failed: ${message}` });
     } finally {
       setLoading(false);
     }
@@ -230,7 +263,7 @@ export default function Home() {
       return;
     }
 
-    setError('');
+    setNotification(null);
     setGeneratedProof(null);
     setProofLoading(true);
 
@@ -244,10 +277,14 @@ export default function Home() {
       if (!proofResponse.ok) {
         throw new Error(await proofResponse.text());
       }
-
+      
+      setCurrentStep(3);
       setIsPolling(true);
+      setAndClearNotification({ type: 'info', message: 'Proof generation started. This may take a moment. We are polling for the result.' });
+
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Proof generation failed.');
+      const message = caught instanceof Error ? caught.message : 'Proof generation failed.';
+      setAndClearNotification({ type: 'error', message });
       setProofLoading(false);
     }
   }
@@ -330,6 +367,10 @@ export default function Home() {
                 );
               })}
             </div>
+          </div>
+
+          <div className="mb-8">
+            <NotificationBanner notification={notification} onClear={() => setNotification(null)} />
           </div>
 
           {showHistory && (
@@ -478,49 +519,113 @@ export default function Home() {
                 {/* Submit Button */}
                 <button 
                   type="submit" 
-                  disabled={loading || proofLoading}
+                  disabled={loading || proofLoading || isPolling}
                   className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white font-semibold py-3.5 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="animate-spin" size={20} />
-                      Preparing your attestation...
+                      <Loader2 className="animate-spin" />
+                      Creating Attestation...
                     </>
                   ) : (
                     <>
                       <FileKey2 aria-hidden />
-                      Generate attestation
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      Create Attestation
                     </>
                   )}
                 </button>
+              </div>
+            </form>
+          )}
 
-                {proofInput && (
-                  <div className="pt-6 border-t border-slate-800/50">
-                    <h3 className="text-lg font-semibold mb-4">Ready to Generate Proof</h3>
-                    <p className="text-slate-400 mb-4">Your attestation is ready. You can now generate the ZK proof.</p>
-                    <button 
-                      type="button" 
-                      onClick={generateProof}
-                      disabled={proofLoading}
-                      className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3.5 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                    >
-                      {proofLoading ? (
-                        <>
-                          <Loader2 className="animate-spin" size={20} />
-                          {isPolling ? 'Proof in progress...' : 'Generating proof...'}
-                        </>
-                      ) : (
-                        <>
-                          <PlayCircle aria-hidden />
-                          Generate Proof
-                        </>
-                      )}
-                    </button>
+          {attestation && (
+            <div className="mt-8 bg-slate-900/70 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl overflow-hidden">
+              <div className="p-6 border-b border-slate-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-purple-500/20">
+                    <ShieldCheck className="text-purple-400" size={20} />
+                  </div>
+                  <h2 className="text-xl font-bold">Generate Proof</h2>
+                </div>
+              </div>
+              <div className="p-6 space-y-6">
+                <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+                  <div className="flex gap-3">
+                    <Info size={20} className="text-purple-400 flex-shrink-0 mt-0.5" />
+                    <p className="text-slate-300">The attestation is ready. Click below to generate the zero-knowledge proof. This is a computationally intensive process and may take a moment.</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={generateProof} 
+                  disabled={proofLoading || isPolling}
+                  className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 text-white font-semibold py-3.5 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  {proofLoading || isPolling ? (
+                    <>
+                      <Loader2 className="animate-spin" />
+                      {isPolling ? 'Polling for result...' : 'Generating proof...'}
+                    </>
+                  ) : (
+                    <>
+                      <PlayCircle aria-hidden />
+                      Generate ZK Proof
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {generatedProof && (
+            <div className="mt-8 bg-slate-900/70 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl overflow-hidden">
+              <div className="p-6 border-b border-slate-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-500/20">
+                    <CheckCircle2 className="text-green-400" size={20} />
+                  </div>
+                  <h2 className="text-xl font-bold">Proof Generated & Verified</h2>
+                </div>
+              </div>
+              <div className="p-6 space-y-6">
+                <p className="text-slate-300">Your proof has been successfully generated and verified. You can now share the verification link.</p>
+                
+                <div className="relative">
+                  <input 
+                    value={`${window.location.origin}/verify/${generatedProof.attestationId}`} 
+                    readOnly
+                    className="w-full px-4 py-3 pr-28 bg-slate-800/50 border border-slate-700 rounded-xl text-slate-400 font-mono text-sm"
+                  />
+                  <button 
+                    onClick={() => copyToClipboard(`${window.location.origin}/verify/${generatedProof.attestationId}`)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2 px-4 py-2 text-sm bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
+                  >
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                    {copied ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-center pt-4">
+                  <button onClick={() => setShowQR(!showQR)} className="text-blue-400 hover:text-blue-300 flex items-center gap-2">
+                    <QrCode size={16} />
+                    {showQR ? 'Hide' : 'Show'} QR Code
+                  </button>
+                </div>
+
+                {showQR && (
+                  <div className="flex flex-col items-center justify-center p-6 bg-slate-800/50 rounded-xl">
+                    <QRCodeSVG 
+                      value={`${window.location.origin}/verify/${generatedProof.attestationId}`} 
+                      size={192}
+                      bgColor="#1e293b"
+                      fgColor="#ffffff"
+                      level="Q"
+                      className="rounded-lg"
+                    />
+                    <p className="mt-4 text-sm text-slate-400">Scan to verify proof</p>
                   </div>
                 )}
               </div>
-            </form>
+            </div>
           )}
         </div>
       </main>
