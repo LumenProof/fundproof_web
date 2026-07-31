@@ -74,6 +74,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [proofLoading, setProofLoading] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [proofHistory, setProofHistory] = useState<ProofHistoryItem[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -128,6 +129,33 @@ export default function Home() {
       try { localStorage.removeItem('fundproof_history'); } catch (e) {}
     }
   }, []);
+
+  useEffect(() => {
+    if (!isPolling || !attestation) {
+      return;
+    }
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`${apiBase}/verify/${attestation.id}`);
+        const data = await response.json();
+
+        if (data.verified) {
+          setGeneratedProof(data);
+          setCurrentStep(3);
+          saveToHistory(data, attestation);
+          setIsPolling(false);
+          setProofLoading(false);
+        }
+      } catch (err) {
+        setError('Failed to poll for proof status.');
+        setIsPolling(false);
+        setProofLoading(false);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [isPolling, attestation]);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -217,13 +245,9 @@ export default function Home() {
         throw new Error(await proofResponse.text());
       }
 
-      const proof = (await proofResponse.json()) as GeneratedProofResponse;
-      setGeneratedProof(proof);
-      setCurrentStep(3);
-      saveToHistory(proof, attestation);
+      setIsPolling(true);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Proof generation failed.');
-    } finally {
       setProofLoading(false);
     }
   }
@@ -429,7 +453,7 @@ export default function Home() {
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">Stellar address (read-only)</label>
                   <input 
-                    value={stellarAddress} 
+                    value={walletPublicKey} 
                     readOnly
                     disabled
                     placeholder="Connect your wallet to populate this field"
@@ -454,7 +478,7 @@ export default function Home() {
                 {/* Submit Button */}
                 <button 
                   type="submit" 
-                  disabled={loading}
+                  disabled={loading || proofLoading}
                   className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white font-semibold py-3.5 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   {loading ? (
@@ -471,192 +495,35 @@ export default function Home() {
                   )}
                 </button>
 
-                {error && <p className="text-red-400 text-sm bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</p>}
+                {proofInput && (
+                  <div className="pt-6 border-t border-slate-800/50">
+                    <h3 className="text-lg font-semibold mb-4">Ready to Generate Proof</h3>
+                    <p className="text-slate-400 mb-4">Your attestation is ready. You can now generate the ZK proof.</p>
+                    <button 
+                      type="button" 
+                      onClick={generateProof}
+                      disabled={proofLoading}
+                      className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3.5 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    >
+                      {proofLoading ? (
+                        <>
+                          <Loader2 className="animate-spin" size={20} />
+                          {isPolling ? 'Proof in progress...' : 'Generating proof...'}
+                        </>
+                      ) : (
+                        <>
+                          <PlayCircle aria-hidden />
+                          Generate Proof
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             </form>
           )}
-
-          {/* Verification Package Panel */}
-          <section className="mt-8 bg-slate-900/70 backdrop-blur-xl border border-slate-800/50 rounded-2xl shadow-2xl overflow-hidden">
-            <div className="p-6 border-b border-slate-800/50">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${attestation && passes ? 'bg-green-500/20' : attestation ? 'bg-red-500/20' : 'bg-blue-500/20'}`}>
-                  {attestation && passes ? <CheckCircle2 className="text-green-400" size={20} /> : attestation ? <XCircle className="text-red-400" size={20} /> : <ShieldCheck className="text-blue-400" size={20} />}
-                </div>
-                <h2 className="text-xl font-bold">Verification Package</h2>
-              </div>
-            </div>
-
-            <div className="p-6">
-              {!attestation ? (
-                <div className="text-center py-12">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-800/50 mb-6">
-                    <ShieldCheck size={32} className="text-slate-500" />
-                  </div>
-                  <p className="text-slate-500">Connect your wallet and generate an attestation to prepare private circuit inputs and public signals.</p>
-                </div>
-              ) : (
-                <div className="space-y-8">
-                  {/* Status Banner */}
-                  <div className={`p-4 rounded-xl flex items-center gap-3 ${passes ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
-                    {passes ? <CheckCircle2 size={24} /> : <XCircle size={24} />}
-                    <span className="font-semibold">{passes ? '✓ Local balance satisfies threshold' : '✗ Local balance is below threshold'}</span>
-                  </div>
-
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="p-5 bg-slate-800/50 rounded-xl">
-                      <dt className="text-sm text-slate-500 mb-1">Mock balance</dt>
-                      <dd className="text-2xl font-bold text-white">{formatUsd(attestation.demo.mockBalanceCents)}</dd>
-                    </div>
-                    <div className="p-5 bg-slate-800/50 rounded-xl">
-                      <dt className="text-sm text-slate-500 mb-1">Threshold</dt>
-                      <dd className="text-2xl font-bold text-white">{formatUsd(attestation.thresholdCents)}</dd>
-                    </div>
-                    <div className="p-5 bg-slate-800/50 rounded-xl">
-                      <dt className="text-sm text-slate-500 mb-1">Expires</dt>
-                      <dd className="text-2xl font-bold text-white">{new Date(attestation.expiresAt * 1000).toLocaleDateString()}</dd>
-                    </div>
-                  </div>
-
-                  {/* Technical Details */}
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Technical Details</h3>
-                    <div className="space-y-4">
-                      <div className="p-4 bg-slate-800/50 rounded-xl">
-                        <dt className="text-sm text-slate-500 mb-2">Attestation hash</dt>
-                        <dd className="font-mono text-sm text-slate-300 break-all">{attestation.attestationHash}</dd>
-                      </div>
-                      <div className="p-4 bg-slate-800/50 rounded-xl">
-                        <dt className="text-sm text-slate-500 mb-2">Address hash</dt>
-                        <dd className="font-mono text-sm text-slate-300 break-all">{attestation.addressHash}</dd>
-                      </div>
-                    </div>
-                  </div>
-
-                  {proofInput && !generatedProof && (
-                    <div className="space-y-6">
-                      <button 
-                        type="button" 
-                        onClick={generateProof} 
-                        disabled={proofLoading || !passes}
-                        className="w-full sm:w-auto group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white font-semibold py-3.5 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                      >
-                        {proofLoading ? (
-                          <>
-                            <Loader2 className="animate-spin" size={20} />
-                            Generating your ZK proof...
-                          </>
-                        ) : (
-                          <>
-                            <PlayCircle aria-hidden />
-                            Generate Zero-Knowledge Proof
-                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                          </>
-                        )}
-                      </button>
-                      
-                      {/* Public Signals Code Block */}
-                      <div className="rounded-xl overflow-hidden border border-slate-700">
-                        <div className="flex items-center justify-between px-4 py-3 bg-slate-800 border-b border-slate-700">
-                          <span className="text-sm font-medium text-slate-300">Public Signals</span>
-                          <button 
-                            className="p-1.5 rounded-lg hover:bg-slate-700 transition-colors"
-                            onClick={() => copyToClipboard(JSON.stringify(proofInput.publicSignals, null, 2))}
-                            title="Copy to clipboard"
-                          >
-                            {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} className="text-slate-400" />}
-                          </button>
-                        </div>
-                        <div className="p-4 bg-slate-900/50 overflow-x-auto">
-                          <pre className="text-sm text-slate-300">{JSON.stringify(proofInput.publicSignals, null, 2)}</pre>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {generatedProof && (
-                    <div className="space-y-8">
-                      {/* Proof Complete Status */}
-                      <div className="p-5 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center gap-4">
-                        <CheckCircle2 size={28} className="text-green-400 flex-shrink-0" />
-                        <div>
-                          <span className="font-semibold text-green-400 text-lg">Groth16 proof verified locally</span>
-                          <p className="text-sm text-green-400/70">Your zero-knowledge proof has been successfully generated and verified</p>
-                        </div>
-                      </div>
-                      
-                      {/* Proof Stats */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="p-5 bg-slate-800/50 rounded-xl">
-                          <dt className="text-sm text-slate-500 mb-1">Public signals</dt>
-                          <dd className="text-2xl font-bold text-white">{generatedProof.publicSignals.length}</dd>
-                        </div>
-                        <div className="p-5 bg-slate-800/50 rounded-xl">
-                          <dt className="text-sm text-slate-500 mb-1">Proof file</dt>
-                          <dd className="text-lg font-bold text-white font-mono">{generatedProof.files.proof}</dd>
-                        </div>
-                      </div>
-
-                      {/* Share Section */}
-                      <div>
-                        <h3 className="text-lg font-semibold mb-4">Share Your Proof</h3>
-                        <div className="flex flex-wrap gap-3 mb-6">
-                          <button 
-                            onClick={() => setShowQR(!showQR)}
-                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 text-sm font-medium"
-                          >
-                            <QrCode size={16} />
-                            {showQR ? 'Hide QR Code' : 'Show QR Code'}
-                          </button>
-                          <button 
-                            onClick={() => copyToClipboard(`${window.location.origin}/verify/${generatedProof.attestationId}`)}
-                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 text-sm font-medium"
-                          >
-                            <Copy size={16} />
-                            {copied ? 'Copied!' : 'Copy Proof Link'}
-                          </button>
-                        </div>
-                        
-                        {showQR && (
-                          <div className="inline-block p-6 bg-white rounded-xl">
-                            <QRCodeSVG 
-                              value={`${window.location.origin}/verify/${generatedProof.attestationId}`}
-                              size={200}
-                            />
-                            <p className="mt-4 text-center text-slate-600 font-medium">Scan to verify this proof</p>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Full Proof Data Code Block */}
-                      <div className="rounded-xl overflow-hidden border border-slate-700">
-                        <div className="flex items-center justify-between px-4 py-3 bg-slate-800 border-b border-slate-700">
-                          <span className="text-sm font-medium text-slate-300">Full Proof Data</span>
-                          <button 
-                            className="p-1.5 rounded-lg hover:bg-slate-700 transition-colors"
-                            onClick={() => copyToClipboard(JSON.stringify(generatedProof, null, 2))}
-                            title="Copy to clipboard"
-                          >
-                            {copied ? <Check size={16} className="text-green-400" /> : <Copy size={16} className="text-slate-400" />}
-                          </button>
-                        </div>
-                        <div className="p-4 bg-slate-900/50 overflow-x-auto max-h-80">
-                          <pre className="text-sm text-slate-300">{JSON.stringify(generatedProof, null, 2)}</pre>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </section>
         </div>
       </main>
     </div>
   );
-}
-
-function formatUsd(cents: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
 }
